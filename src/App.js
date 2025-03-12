@@ -1,26 +1,22 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useState } from "react";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import './App.css';
+import ForgotPasswordPage from "./pages/ForgotPasswordPage"; // Add forgot password
+import RegisterPage from "./pages/RegisterPage"; // Import Register Page
 
-function App() {
-  const [user, setUser] = useState(null);
-
+const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginPage setUser={setUser} />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route
-          path="/home"
-          element={user ? <HomePage user={user} /> : <Navigate to="/login" />}
-        />
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="/register" element={<RegisterPage />} /> {/* Register Route */}
+        <Route path="*" element={<LoginPage />} /> {/* Default to Login */}
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
