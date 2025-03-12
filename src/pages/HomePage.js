@@ -1,29 +1,43 @@
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-function HomePage({ user }) {
+const HomePage = () => {
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      navigate("/login"); // Redirect if not authenticated
+      return;
+    }
+
+    // Fetch user profile
+    axios
+      .get("http://localhost:5000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => setUser(response.data))
+      .catch(() => {
+        localStorage.removeItem("accessToken"); // Remove expired token
+        navigate("/login"); // Redirect to login
+      });
+  }, [navigate]);
+
   const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     navigate("/login");
   };
 
   return (
     <div className="home-container">
-      <div className="upper-section">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnrssxO1WKp6L7ZblKOiDqNGEgQsivTW2trA&s" alt="Brand Logo" />
-        <img src={user.profileImage} alt="Profile" className="profile-image" />
-        <h2>{user.name}</h2>
-      </div>
-      <div className="quick-section">
-        <button>Locations</button>
-        <button>QA Reports</button>
-        <button>Settings</button>
-      </div>
-      <div className="lower-section">
-        <button onClick={handleLogout}>Logout</button>
-      </div>
+      <h2>Welcome, {user ? user.fullName : "User"}!</h2>
+      <button onClick={handleLogout}>Logout</button>
     </div>
   );
-}
+};
 
 export default HomePage;
