@@ -1,78 +1,148 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "../styles/global.css";
 
-const RegisterPage = () => {
-  const [userData, setUserData] = useState({
+function RegisterPage() {
+  const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
-    phoneNumber: "",
-    role: "client", // Default role
+    confirmPassword: "",
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/register", // Adjust if needed
-        userData
+        "http://localhost:5000/api/auth/register",
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+        }
       );
 
-      setSuccess("Registration successful! Redirecting to login...");
-      setTimeout(() => navigate("/login"), 2000); // Redirect after success
+      if (response.data.success) {
+        navigate("/login");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed.");
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="register-container">
-      <h2>Register</h2>
-      {error && <p className="error">{error}</p>}
-      {success && <p className="success">{success}</p>}
-      <form onSubmit={handleRegister}>
-        <label>First Name:</label>
-        <input type="text" name="firstName" value={userData.firstName} onChange={handleChange} required />
+    <div className="container">
+      <div className="form-container">
+        <h2 className="page-title">Create Account</h2>
+        {error && <p className="error">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>First Name</label>
+            <input
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+              placeholder="Enter your first name"
+            />
+          </div>
 
-        <label>Last Name:</label>
-        <input type="text" name="lastName" value={userData.lastName} onChange={handleChange} required />
+          <div className="form-group">
+            <label>Last Name</label>
+            <input
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+              placeholder="Enter your last name"
+            />
+          </div>
 
-        <label>Email:</label>
-        <input type="email" name="email" value={userData.email} onChange={handleChange} required />
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+              placeholder="Enter your email"
+            />
+          </div>
 
-        <label>Password:</label>
-        <input type="password" name="password" value={userData.password} onChange={handleChange} required />
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+              placeholder="Enter your password"
+            />
+          </div>
 
-        <label>Phone Number:</label>
-        <input type="text" name="phoneNumber" value={userData.phoneNumber} onChange={handleChange} required />
+          <div className="form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              disabled={isLoading}
+              placeholder="Confirm your password"
+            />
+          </div>
 
-        <label>Role:</label>
-        <select name="role" value={userData.role} onChange={handleChange}>
-          <option value="client">Client</option>
-          <option value="staff">Staff</option>
-          <option value="manager">Manager</option>
-          <option value="admin">Admin</option>
-        </select>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Creating Account..." : "Register"}
+          </button>
+        </form>
 
-        <button type="submit">Register</button>
-      </form>
-      <p onClick={() => navigate("/login")} className="login-link">
-        Already have an account? Login
-      </p>
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <button 
+            onClick={() => navigate("/login")} 
+            className="link-button"
+            disabled={isLoading}
+          >
+            Already have an account? Login
+          </button>
+        </div>
+      </div>
     </div>
   );
-};
+}
 
 export default RegisterPage;
