@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import "../styles/global.css";
+import "../styles/auth.css";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,7 +21,7 @@ function LoginPage() {
       if (result.success) {
         navigate("/home");
       } else {
-        setError(result.error);
+        setError(result.error || "Invalid credentials");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -31,55 +31,58 @@ function LoginPage() {
   };
 
   return (
-    <div className="container">
-      <div className="form-container">
-        <h2 className="page-title">Welcome Back</h2>
-        {error && <p className="error">{error}</p>}
-        <form onSubmit={handleLogin}>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Welcome Back</h1>
+          <p>Sign in to continue to your dashboard</p>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleLogin} className="auth-form">
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email Address</label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              disabled={isLoading}
+              autoComplete="email"
               placeholder="Enter your email"
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              disabled={isLoading}
+              autoComplete="current-password"
               placeholder="Enter your password"
             />
           </div>
 
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+          <button
+            type="submit"
+            className="auth-button"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </form>
-        
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <button 
-            onClick={() => navigate("/forgot-password")} 
-            className="link-button"
-            disabled={isLoading}
-          >
+
+        <div className="auth-links">
+          <Link to="/forgot-password" className="auth-link">
             Forgot Password?
-          </button>
-          <button 
-            onClick={() => navigate("/register")} 
-            className="link-button"
-            disabled={isLoading}
-          >
-            Don't have an account? Register
-          </button>
+          </Link>
+          <Link to="/register" className="auth-link">
+            Create Account
+          </Link>
         </div>
       </div>
     </div>

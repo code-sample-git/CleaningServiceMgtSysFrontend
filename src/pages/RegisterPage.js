@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import "../styles/global.css";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import "../styles/auth.css";
 
 function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -14,16 +14,17 @@ function RegisterPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -35,110 +36,119 @@ function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+      const result = await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
 
-      if (response.data.success) {
-        navigate("/login");
+      if (result.success) {
+        navigate("/home");
+      } else {
+        setError(result.error || "Registration failed");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="container">
-      <div className="form-container">
-        <h2 className="page-title">Create Account</h2>
-        {error && <p className="error">{error}</p>}
-        <form onSubmit={handleSubmit}>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Create Account</h1>
+          <p>Sign up to get started</p>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleRegister} className="auth-form">
           <div className="form-group">
-            <label>First Name</label>
+            <label htmlFor="firstName">First Name</label>
             <input
-              type="text"
+              id="firstName"
               name="firstName"
+              type="text"
               value={formData.firstName}
               onChange={handleChange}
               required
-              disabled={isLoading}
+              autoComplete="given-name"
               placeholder="Enter your first name"
             />
           </div>
 
           <div className="form-group">
-            <label>Last Name</label>
+            <label htmlFor="lastName">Last Name</label>
             <input
-              type="text"
+              id="lastName"
               name="lastName"
+              type="text"
               value={formData.lastName}
               onChange={handleChange}
               required
-              disabled={isLoading}
+              autoComplete="family-name"
               placeholder="Enter your last name"
             />
           </div>
 
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email Address</label>
             <input
-              type="email"
+              id="email"
               name="email"
+              type="email"
               value={formData.email}
               onChange={handleChange}
               required
-              disabled={isLoading}
+              autoComplete="email"
               placeholder="Enter your email"
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
-              type="password"
+              id="password"
               name="password"
+              type="password"
               value={formData.password}
               onChange={handleChange}
               required
-              disabled={isLoading}
-              placeholder="Enter your password"
+              autoComplete="new-password"
+              placeholder="Create a password"
             />
           </div>
 
           <div className="form-group">
-            <label>Confirm Password</label>
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <input
-              type="password"
+              id="confirmPassword"
               name="confirmPassword"
+              type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              disabled={isLoading}
+              autoComplete="new-password"
               placeholder="Confirm your password"
             />
           </div>
 
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Creating Account..." : "Register"}
+          <button
+            type="submit"
+            className="auth-button"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <button 
-            onClick={() => navigate("/login")} 
-            className="link-button"
-            disabled={isLoading}
-          >
-            Already have an account? Login
-          </button>
+        <div className="auth-links">
+          <Link to="/login" className="auth-link">
+            Already have an account? Sign In
+          </Link>
         </div>
       </div>
     </div>

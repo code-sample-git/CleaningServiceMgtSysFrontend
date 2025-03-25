@@ -1,33 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { inventoryService, supplyService } from "../services/mockData";
 import "../styles/global.css";
 
 function HomePage() {
   const [userData, setUserData] = useState(null);
+  const [inventory, setInventory] = useState([]);
+  const [supplies, setSupplies] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const loadData = () => {
       try {
-        const token = localStorage.getItem("accessToken");
-        const response = await axios.get("http://localhost:5000/api/users/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setUserData(response.data);
+        setUserData(user);
+        setInventory(inventoryService.getAll());
+        setSupplies(supplyService.getAll());
       } catch (err) {
-        setError("Failed to load user data");
+        setError("Failed to load data");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserData();
-  }, []);
+    loadData();
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -74,14 +74,17 @@ function HomePage() {
           </div>
 
           <div className="card">
-            <h3>Quick Actions</h3>
+            <h3>Inventory Overview</h3>
+            <p><strong>Total Items:</strong> {inventory.length}</p>
+            <p><strong>Low Stock Items:</strong> {inventory.filter(item => item.quantity < 5).length}</p>
             <button onClick={() => navigate("/inventory")}>Manage Inventory</button>
-            <button onClick={() => navigate("/supply")}>Manage Supplies</button>
           </div>
 
           <div className="card">
-            <h3>Recent Activity</h3>
-            <p>No recent activity to display</p>
+            <h3>Supplies Overview</h3>
+            <p><strong>Total Items:</strong> {supplies.length}</p>
+            <p><strong>Items Needing Maintenance:</strong> {supplies.filter(item => item.condition !== 'good').length}</p>
+            <button onClick={() => navigate("/supply")}>Manage Supplies</button>
           </div>
         </div>
       </div>

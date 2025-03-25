@@ -1,69 +1,77 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import "../styles/global.css";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import "../styles/auth.css";
 
 function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const { resetPassword } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+    setSuccess(false);
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/forgot-password",
-        { email }
-      );
-
-      if (response.data.success) {
-        setSuccess("Password reset instructions have been sent to your email.");
+      const result = await resetPassword(email);
+      if (result.success) {
+        setSuccess(true);
+      } else {
+        setError(result.error || "Failed to send reset email");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to process request. Please try again.");
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="container">
-      <div className="form-container">
-        <h2 className="page-title">Reset Password</h2>
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
-        <form onSubmit={handleSubmit}>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Reset Password</h1>
+          <p>Enter your email to receive reset instructions</p>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+        {success && (
+          <div className="success-message">
+            Password reset instructions have been sent to your email.
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email Address</label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              disabled={isLoading}
+              autoComplete="email"
               placeholder="Enter your email"
             />
           </div>
 
-          <button type="submit" disabled={isLoading}>
+          <button
+            type="submit"
+            className="auth-button"
+            disabled={isLoading}
+          >
             {isLoading ? "Sending..." : "Send Reset Instructions"}
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <button 
-            onClick={() => navigate("/login")} 
-            className="link-button"
-            disabled={isLoading}
-          >
-            Back to Login
-          </button>
+        <div className="auth-links">
+          <Link to="/login" className="auth-link">
+            Back to Sign In
+          </Link>
         </div>
       </div>
     </div>

@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
-import config from '../config/config';
+import { authService } from '../services/mockData';
 
 const AuthContext = createContext(null);
 
@@ -9,53 +8,25 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing token on mount
-    const token = localStorage.getItem(config.TOKEN_KEY);
-    if (token) {
-      // Validate token and get user data
-      validateToken(token);
-    } else {
-      setLoading(false);
+    // Check for existing user on mount
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
     }
+    setLoading(false);
   }, []);
 
-  const validateToken = async (token) => {
-    try {
-      const response = await axios.get(`${config.API_BASE_URL}${config.AUTH_ENDPOINTS.VALIDATE}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUser(response.data.user);
-    } catch (error) {
-      localStorage.removeItem(config.TOKEN_KEY);
-      localStorage.removeItem(config.REFRESH_TOKEN_KEY);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const login = async (email, password) => {
-    try {
-      const response = await axios.post(`${config.API_BASE_URL}${config.AUTH_ENDPOINTS.LOGIN}`, {
-        email,
-        password
-      });
-      const { accessToken, refreshToken, user } = response.data;
-      localStorage.setItem(config.TOKEN_KEY, accessToken);
-      localStorage.setItem(config.REFRESH_TOKEN_KEY, refreshToken);
-      setUser(user);
+    const result = authService.login(email, password);
+    if (result.success) {
+      setUser(result.user);
       return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Login failed. Please try again.'
-      };
     }
+    return { success: false, error: result.error };
   };
 
   const logout = () => {
-    localStorage.removeItem(config.TOKEN_KEY);
-    localStorage.removeItem(config.REFRESH_TOKEN_KEY);
+    authService.logout();
     setUser(null);
   };
 
