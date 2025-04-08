@@ -7,25 +7,30 @@
     <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
-    <h1>Supply Requests & Inventory</h1>
+    <header>
+        <h1>Supply Requests & Inventory</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Request Supplies</h2>
+            <label for="supply-item">Select Item:</label>
+            <select id="supply-item">
+                <option value="gloves">Gloves</option>
+                <option value="mop">Mop</option>
+                <option value="detergent">Detergent</option>
+                <option value="trash-bags">Trash Bags</option>
+            </select>
+            <input type="number" id="supply-quantity" placeholder="Enter Quantity" min="1">
+            <button id="request-supply-btn">Request Supply</button>
+            <p id="request-message"></p>
+        </section>
 
-    <h2>Request Supplies</h2>
-    <label for="supply-item">Select Item:</label>
-    <select id="supply-item">
-        <option value="gloves">Gloves</option>
-        <option value="mop">Mop</option>
-        <option value="detergent">Detergent</option>
-        <option value="trash-bags">Trash Bags</option>
-    </select>
-    <input type="number" id="supply-quantity" placeholder="Enter Quantity" min="1">
-    <button id="request-supply-btn">Request Supply</button>
-    <p id="request-message"></p>
-
-    <h2>Low Stock Alerts</h2>
-    <ul id="low-stock-list"></ul>
-
-    <a href="index.html">Back to Home</a>
-
+        <section>
+            <h2>Low Stock Alerts</h2>
+            <ul id="low-stock-list"></ul>
+        </section>
+        <a href="index.html">Back to Home</a>
+    </main>
     <script src="../scripts/supplies.js"></script>
 </body>
 </html>

@@ -7,8 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function sendClockInData(latitude, longitude) {
         fetch("http://localhost:3000/clock-in", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ latitude, longitude, timestamp: new Date() })
+            headers: { "Content-Type": "application/json", "Authorization": localStorage.getItem("token") },
+            body: JSON.stringify({ latitude, longitude })
         })
         .then(response => response.json())
         .then(data => {
@@ -33,27 +33,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     clockOutBtn.addEventListener("click", () => {
-        fetch("http://localhost:3000/clock-out", { method: "POST" })
-            .then(response => response.json())
-            .then(data => {
-                statusMessage.textContent = data.message;
-                clockInBtn.disabled = false;
-                clockOutBtn.disabled = true;
-            })
-            .catch(error => console.error("Error:", error));
+        fetch("http://localhost:3000/clock-out", {
+            method: "POST",
+            headers: { "Authorization": localStorage.getItem("token") }
+        })
+        .then(response => response.json())
+        .then(data => {
+            statusMessage.textContent = data.message;
+            clockInBtn.disabled = false;
+            clockOutBtn.disabled = true;
+        })
+        .catch(error => console.error("Error:", error));
     });
 
     function loadTasks() {
-        fetch("http://localhost:3000/tasks")
-            .then(response => response.json())
-            .then(tasks => {
-                taskList.innerHTML = "";
-                tasks.forEach(task => {
-                    let li = document.createElement("li");
-                    li.textContent = task.name;
-                    taskList.appendChild(li);
-                });
-            })
-            .catch(error => console.error("Error loading tasks:", error));
+        fetch("http://localhost:3000/tasks", {
+            headers: { "Authorization": localStorage.getItem("token") }
+        })
+        .then(response => response.json())
+        .then(tasks => {
+            taskList.innerHTML = "";
+            tasks.forEach(task => {
+                let li = document.createElement("li");
+                li.textContent = task.name;
+                taskList.appendChild(li);
+            });
+        })
+        .catch(error => console.error("Error loading tasks:", error));
     }
 });

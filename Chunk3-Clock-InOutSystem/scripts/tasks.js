@@ -4,7 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function fetchTasks() {
         try {
-            const response = await fetch("http://localhost:3000/tasks");
+            const response = await fetch("http://localhost:3000/tasks", {
+                headers: { "Authorization": localStorage.getItem("token") }
+            });
             if (!response.ok) throw new Error("Failed to fetch tasks");
 
             const tasks = await response.json();

@@ -12,9 +12,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Serve frontend pages
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "index.html")));
+app.get("/clock-in", (req, res) => res.sendFile(path.join(__dirname, "public", "clock-in.html")));
 app.get("/tasks", (req, res) => res.sendFile(path.join(__dirname, "public", "tasks.html")));
 app.get("/supplies", (req, res) => res.sendFile(path.join(__dirname, "public", "supplies.html")));
 
 // Start server
 app.listen(PORT, () => console.log(`Frontend server running at http://localhost:${PORT}`));
-
