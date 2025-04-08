@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { forgotPassword } from '../utils/api'; // Import API utility
+import { forgotPassword } from '../utils/api';
 
 function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -20,16 +20,18 @@ function ForgotPasswordPage() {
 
   return (
     <div className="forgot-password-container">
-      <h2>Forgot Password</h2>
-      {message && <p style={{ color: 'green' }}>{message}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <button onClick={handleSubmit}>Submit</button>
+      <div className="card">
+        <h2>Forgot Password</h2>
+        {message && <p style={{ color: 'green' }}>{message}</p>}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <button onClick={handleSubmit}>Submit</button>
+      </div>
     </div>
   );
 }
