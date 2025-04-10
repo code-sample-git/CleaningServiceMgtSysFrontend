@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { register } from '../utils/api';
+import { register } from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 
-const RegisterPage = ({ setUser }) => {
+const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -10,27 +11,27 @@ const RegisterPage = ({ setUser }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [role, setRole] = useState("staff");
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const navigate = useNavigate();
+
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
       const userData = { email, password, firstName, lastName, phoneNumber, role };
-      const { data } = await register(userData);
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      setUser({
-        email: data.user.email,
-        name: `${data.user.firstName} ${data.user.lastName}`,
-        profileImage: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
-      });
-      setMessage("Registration successful! Redirecting to login...");
-      setError("");
-      setTimeout(() => navigate("/login"), 2000);
+      await register(userData);
+
+      // Automatically log in after successful registration
+      const result = await login(email, password);
+      if (result.success) {
+        navigate("/home");
+      } else {
+        setError("Registration succeeded but auto-login failed.");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
-      setMessage("");
     }
   };
 
@@ -43,8 +44,7 @@ const RegisterPage = ({ setUser }) => {
           className="logo"
         />
         <h2>Register</h2>
-        {message && <p style={{ color: 'green' }}>{message}</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
         <form onSubmit={handleSubmit}>
           <input
             type="email"

@@ -1,56 +1,107 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { getProfile } from '../utils/api';
+import { inventoryService, supplyService } from "../services/mockData";
+import "../styles/global.css";
 
-function HomePage({ user }) {
-  const [profile, setProfile] = useState(null);
-  const [error, setError] = useState('');
+function HomePage() {
   const navigate = useNavigate();
+  const { user: contextUser, logout } = useAuth();
+
+  const [profile, setProfile] = useState(null);
+  const [inventory, setInventory] = useState([]);
+  const [supplies, setSupplies] = useState([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const loadDashboard = async () => {
       try {
-        const { data } = await getProfile();
+        const { data } = await getProfile(); // API profile fetch
         setProfile(data);
+        setInventory(inventoryService.getAll());
+        setSupplies(supplyService.getAll());
       } catch (err) {
-        setError('Failed to load profile');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        navigate('/login');
+        console.error("Error fetching profile:", err);
+        setError("Failed to load profile.");
+        if (err.response?.status === 401) {
+          logout(); // uses context-based logout logic
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
-    fetchProfile();
+
+    loadDashboard();
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    logout(); // Uses context logout
     navigate("/login");
   };
 
-  if (!profile) return <div>Loading...</div>;
+  if (isLoading || !profile) {
+    return (
+      <div className="container">
+        <div className="card">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="home-container">
-      <div className="card">
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <div className="upper-section">
-          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnrssxO1WKp6L7ZblKOiDqNGEgQsivTW2trA&s" alt="Brand Logo" />
-          <img src={user.profileImage} alt="Profile" className="profile-image" />
-          <h2>{user.name}</h2>
+    <div>
+      <nav className="navbar">
+        <div className="navbar-content">
+          <a href="/home" className="navbar-brand">Cleaning Service Management</a>
+          <div className="navbar-menu">
+            <span className="navbar-link">Welcome, {profile.firstName}</span>
+            <button onClick={handleLogout} className="link-button">Logout</button>
+          </div>
         </div>
-        <div className="quick-section">
-          <button>Locations</button>
-          <button>QA Reports</button>
-          <button>Settings</button>
+      </nav>
+
+      <div className="container">
+        <h1 className="page-title">Dashboard</h1>
+        {error && <p className="error">{error}</p>}
+
+        <div className="grid">
+          <div className="card">
+            <h3>Profile Information</h3>
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
+              alt="Profile"
+              className="profile-image"
+              style={{ width: "80px", borderRadius: "50%", marginBottom: "10px" }}
+            />
+            <p><strong>Name:</strong> {profile.firstName} {profile.lastName}</p>
+            <p><strong>Email:</strong> {profile.email}</p>
+            <p><strong>Phone:</strong> {profile.phoneNumber || 'Not provided'}</p>
+            <p><strong>Role:</strong> {profile.role}</p>
+          </div>
+
+          <div className="card">
+            <h3>Inventory Overview</h3>
+            <p><strong>Total Items:</strong> {inventory.length}</p>
+            <p><strong>Low Stock Items:</strong> {inventory.filter(item => item.quantity < 5).length}</p>
+            <button onClick={() => navigate("/inventory")}>Manage Inventory</button>
+          </div>
+
+          <div className="card">
+            <h3>Supplies Overview</h3>
+            <p><strong>Total Items:</strong> {supplies.length}</p>
+            <p><strong>Needs Maintenance:</strong> {supplies.filter(item => item.condition !== 'good').length}</p>
+            <button onClick={() => navigate("/supply")}>Manage Supplies</button>
+          </div>
         </div>
-        <div>
-          <p>Email: {profile.email}</p>
-          <p>Phone: {profile.phoneNumber || 'Not provided'}</p>
-          <p>Role: {profile.role}</p>
-        </div>
-        <div className="lower-section">
-          <button className="secondary" onClick={handleLogout}>Logout</button>
+
+        <div style={{ marginTop: "2rem" }}>
+          <button onClick={() => navigate("/dashboard")}>View Full Dashboard</button>
+          <button onClick={() => navigate("/locations")}>Go to Locations</button>
+          <button onClick={() => navigate("/reports")}>View QA Reports</button>
+          <button onClick={() => navigate("/settings")}>Settings</button>
         </div>
       </div>
     </div>

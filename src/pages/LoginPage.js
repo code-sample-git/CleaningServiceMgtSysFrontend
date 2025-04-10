@@ -1,37 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from '../utils/api';
+import { useAuth } from "../context/AuthContext";
 
-function LoginPage({ setUser }) {
+function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    try {
-      setError("");
-      const { data } = await login({ email, password });
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      setUser({
-        email: data.user.email,
-        name: `${data.user.firstName} ${data.user.lastName}`,
-        profileImage: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
-      });
+    setError("");
+    const result = await login(email, password);
+    if (result.success) {
       navigate("/home");
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+    } else {
+      setError(result.error || "Login failed");
     }
   };
 
-  const handleReset = () => {
-    navigate("/forgot-password");
-  };
-
-  const handleRegister = () => {
-    navigate("/register");
-  };
+  const handleReset = () => navigate("/forgot-password");
+  const handleRegister = () => navigate("/register");
 
   return (
     <div className="login-container">
