@@ -55,7 +55,8 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {!loading && children}
+      {/* Only render children when loading is false */}
+      {!loading ? children : <div>Loading...</div>}
     </AuthContext.Provider>
   );
 };

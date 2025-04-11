@@ -44,10 +44,19 @@ api.interceptors.response.use(
   }
 );
 
+// Auth-related API calls
 export const register = (userData) => api.post('/auth/register', userData);
 export const login = (credentials) => api.post('/auth/login', credentials);
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email });
 export const resetPassword = (token, newPassword) => api.post(`/auth/reset-password/${token}`, { newPassword });
 export const getProfile = () => api.get('/auth/profile');
+
+// New API calls for locations and staff
+export const getLocations = () => api.get('/locations');
+export const getStaff = () => api.get('/staff');
+export const assignStaffToLocation = (staffId, locationId) =>
+  api.post('/assign-staff', { staffId, locationId });
+export const getAssignedStaffForLocation = (locationId) =>
+  api.get(`/locations/${locationId}/assigned-staff`);
 
 export default api;

@@ -1,5 +1,5 @@
 import React from 'react';
-import ManagerDashboard from '../../components/ManagerDashboard';
+import ManagerDashboard from './ManagerDashboard';
 
 const ManagerDashboardPage = () => {
   return (
