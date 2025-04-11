@@ -45,6 +45,9 @@ import ClientDetailsPage from "./pages/clients/ClientDetailsPage";
 import ProposalsPage from "./pages/clients/ProposalsPage";
 import CreateProposalPage from "./pages/clients/CreateProposalPage";
 
+// Manager Dashboard Page 
+import ManagerDashboardPage from "./pages/Manager/ManagerDashboardPage"; 
+
 const AppRoutes = () => {
   const { user, loading } = useAuth();
 
@@ -83,6 +86,16 @@ const AppRoutes = () => {
       <Route path="/clients/:id" element={<ProtectedRoute><ClientDetailsPage /></ProtectedRoute>} />
       <Route path="/clients/:id/proposals" element={<ProtectedRoute><ProposalsPage /></ProtectedRoute>} />
       <Route path="/clients/:id/proposals/create" element={<ProtectedRoute><CreateProposalPage /></ProtectedRoute>} />
+
+      {/* Manager Dashboard (Protected Route) */}
+      <Route
+        path="/manager-dashboard"
+        element={
+          <ProtectedRoute>
+            {user.role === 'manager' ? <ManagerDashboardPage /> : <Navigate to="/dashboard" />}
+          </ProtectedRoute>
+        }
+      />
 
       {/* Redirects */}
       <Route path="/" element={<Navigate to="/home" />} />
