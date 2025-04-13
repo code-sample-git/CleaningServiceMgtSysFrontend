@@ -107,7 +107,7 @@ function ServicePage() {
                   <td>
                     <button
                       className="btn-secondary"
-                      onClick={() => navigate(`/services/${req._id}`)}
+                      onClick={() => navigate(`/service/${req._id}`)}
                     >
                       View
                     </button>

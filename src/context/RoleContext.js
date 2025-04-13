@@ -13,6 +13,7 @@ const rolePermissions = {
     canManageInventory: true,
     canApproveRequests: true,
     canManageProposals: true,
+    canRequestService: true,
     canViewDashboard: true
   },
   manager: {
@@ -24,6 +25,7 @@ const rolePermissions = {
     canManageInventory: true,
     canApproveRequests: true,
     canManageProposals: true,
+    canRequestService: true,
     canViewDashboard: true
   },
   staff: {
@@ -38,6 +40,7 @@ const rolePermissions = {
     canClockInOut: true,
     canRequestSupplies: true,
     canViewAssignedTasks: true,
+    canRequestService: true,
     canViewDashboard: true
   },
   client: {
