@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { authService, locationService } from '../../services/mockData';
 import { Table, Loading } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { useRole } from '../../context/RoleContext';
 
 const StaffDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { checkPermission } = useRole();
   const [staff, setStaff] = useState(null);
   const [assignedLocations, setAssignedLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,12 +103,14 @@ const StaffDetailsPage = () => {
           >
             Back to Staff
           </button>
-          <button
-            className="button is-primary"
-            onClick={() => navigate(`/staff/${id}/edit`)}
-          >
-            Edit Staff Member
-          </button>
+          {checkPermission('canManageStaff') && (
+            <button
+              className="button is-primary"
+              onClick={() => navigate(`/staff/${id}/edit`)}
+            >
+              Edit Staff Member
+            </button>
+          )}
           <button
             className="button"
             onClick={() => navigate(`/staff/${id}/time-entries`)}

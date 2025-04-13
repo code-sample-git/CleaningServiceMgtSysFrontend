@@ -12,12 +12,16 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 // Main Pages
 import DashboardPage from "./pages/DashboardPage";
 import InventoryPage from "./pages/InventoryPage";
+import InventoryDetailsPage from "./pages/InventoryDetailsPage";
+import AddItemPage from "./pages/AddItemPage";
+import EditItemPage from "./pages/EditItemPage";
 import SupplyPage from "./pages/SupplyPage";
 
 // Location Management
 import LocationsPage from "./pages/locations/LocationsPage";
 import LocationDetailsPage from "./pages/locations/LocationDetailsPage";
 import AddLocationPage from "./pages/locations/AddLocationPage";
+import EditLocationPage from "./pages/locations/EditLocationPage";
 
 // Task Management
 import TasksPage from "./pages/tasks/TasksPage";
@@ -33,22 +37,43 @@ import ReportDetailsPage from "./pages/reports/ReportDetailsPage";
 import StaffPage from "./pages/staff/StaffPage";
 import StaffDetailsPage from "./pages/staff/StaffDetailsPage";
 import TimeEntriesPage from "./pages/staff/TimeEntriesPage";
+import AddStaffPage from "./pages/staff/AddStaffPage";
+import EditStaffPage from "./pages/staff/EditStaffPage";
+import ClockInPage from './pages/staff/ClockInPage';
+import TimeEntryDetailsPage from './pages/staff/TimeEntryDetailsPage';
 
 // Client Management
 import ClientsPage from "./pages/clients/ClientsPage";
 import ClientDetailsPage from "./pages/clients/ClientDetailsPage";
+import AddClientPage from "./pages/clients/AddClientPage";
 import ProposalsPage from "./pages/clients/ProposalsPage";
 import CreateProposalPage from "./pages/clients/CreateProposalPage";
+import ProposalDetailsPage from "./pages/clients/ProposalDetailsPage";
+import EditProposalPage from "./pages/clients/EditProposalPage";
+
+// Supply Management
+import AddSupplyPage from "./pages/AddSupplyPage";
+import SupplyDetailsPage from "./pages/SupplyDetailsPage";
+import EditSupplyPage from "./pages/EditSupplyPage";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Auth Routes */}
+      {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       {/* Protected Routes */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Navigate to="/home" replace />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/home"
         element={
@@ -75,6 +100,54 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/supply/add"
+        element={
+          <ProtectedRoute>
+            <AddSupplyPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/supply/:id"
+        element={
+          <ProtectedRoute>
+            <SupplyDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/supply/edit/:id"
+        element={
+          <ProtectedRoute>
+            <EditSupplyPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inventory/:id"
+        element={
+          <ProtectedRoute>
+            <InventoryDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inventory/add"
+        element={
+          <ProtectedRoute>
+            <AddItemPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inventory/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EditItemPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Location Routes */}
       <Route
@@ -82,6 +155,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <LocationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/locations/add"
+        element={
+          <ProtectedRoute>
+            <AddLocationPage />
           </ProtectedRoute>
         }
       />
@@ -94,10 +175,10 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/locations/add"
+        path="/locations/:id/edit"
         element={
           <ProtectedRoute>
-            <AddLocationPage />
+            <EditLocationPage />
           </ProtectedRoute>
         }
       />
@@ -112,18 +193,18 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/tasks/:id"
-        element={
-          <ProtectedRoute>
-            <TaskDetailsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/tasks/add"
         element={
           <ProtectedRoute>
             <AddTaskPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/:id"
+        element={
+          <ProtectedRoute>
+            <TaskDetailsPage />
           </ProtectedRoute>
         }
       />
@@ -164,6 +245,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/staff/add"
+        element={
+          <ProtectedRoute>
+            <AddStaffPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/staff/:id"
         element={
           <ProtectedRoute>
@@ -172,10 +261,44 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/staff/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EditStaffPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/staff/:id/time-entries"
         element={
           <ProtectedRoute>
             <TimeEntriesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Time Entry Routes */}
+      <Route
+        path="/time-entries"
+        element={
+          <ProtectedRoute>
+            <TimeEntriesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/time-entries/clock-in"
+        element={
+          <ProtectedRoute>
+            <ClockInPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/time-entries/:id"
+        element={
+          <ProtectedRoute>
+            <TimeEntryDetailsPage />
           </ProtectedRoute>
         }
       />
@@ -198,7 +321,15 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/clients/:id/proposals"
+        path="/clients/add"
+        element={
+          <ProtectedRoute>
+            <AddClientPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/proposals"
         element={
           <ProtectedRoute>
             <ProposalsPage />
@@ -206,31 +337,53 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/clients/:id/proposals/create"
+        path="/proposals/create"
         element={
           <ProtectedRoute>
             <CreateProposalPage />
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/proposals/:id"
+        element={
+          <ProtectedRoute>
+            <ProposalDetailsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/proposals/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EditProposalPage />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Default Route */}
-      <Route path="/" element={<Navigate to="/home" />} />
-      <Route path="*" element={<Navigate to="/login" />} />
+      {/* Catch all route - redirect to home if authenticated, login if not */}
+      <Route
+        path="*"
+        element={
+          <ProtectedRoute>
+            <Navigate to="/home" replace />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 };
 
-const App = () => {
+function App() {
   return (
-    <AuthProvider>
-      <RoleProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <RoleProvider>
           <AppRoutes />
-        </Router>
-      </RoleProvider>
-    </AuthProvider>
+        </RoleProvider>
+      </AuthProvider>
+    </Router>
   );
-};
+}
 
 export default App;

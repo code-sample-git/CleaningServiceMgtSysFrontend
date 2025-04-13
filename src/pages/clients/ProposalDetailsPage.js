@@ -1,108 +1,117 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { proposalService, locationService, taskService } from '../../services/mockData';
+import { proposalService, authService, taskService, locationService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { useRole } from '../../context/RoleContext';
 
 const ProposalDetailsPage = () => {
-  const { id, proposalId } = useParams();
-  const navigate = useNavigate();
+  const { id } = useParams();
   const [proposal, setProposal] = useState(null);
+  const [client, setClient] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { checkPermission } = useRole();
 
   useEffect(() => {
     loadProposalDetails();
-  }, [id, proposalId]);
+  }, [id]);
 
   const loadProposalDetails = () => {
-    const proposalData = proposalService.getById(Number(proposalId));
+    const proposalData = proposalService.getById(Number(id));
     if (!proposalData) {
-      navigate(`/clients/${id}/proposals`);
+      navigate('/proposals');
       return;
     }
+
+    const clientData = authService.getAll().find(user => user.id === proposalData.clientId);
+    if (!clientData || clientData.role !== 'client') {
+      navigate('/proposals');
+      return;
+    }
+
+    // Get all tasks from the proposal's locations
+    const proposalTasks = proposalData.locations.flatMap(location => {
+      const locationData = locationService.getById(location.id);
+      if (!locationData) return [];
+      return location.tasks.map(taskId => taskService.getById(taskId));
+    });
+
     setProposal(proposalData);
+    setClient(clientData);
+    setTasks(proposalTasks);
     setLoading(false);
   };
 
-  const locationColumns = [
-    { key: 'name', label: 'Location' },
-    { key: 'address', label: 'Address' },
+  const columns = [
+    { key: 'name', label: 'Task Name' },
+    { key: 'description', label: 'Description' },
     {
-      key: 'tasks',
-      label: 'Tasks',
-      render: (row) => row.tasks.length
+      key: 'frequency',
+      label: 'Frequency',
+      render: (row) => row.frequency.charAt(0).toUpperCase() + row.frequency.slice(1)
     },
     {
-      key: 'subtotal',
-      label: 'Subtotal',
-      render: (row) => `$${calculateLocationSubtotal(row)}`
+      key: 'price',
+      label: 'Price',
+      render: (row) => `$${row.price}`
     }
   ];
-
-  const calculateLocationSubtotal = (location) => {
-    return location.tasks.reduce((sum, taskId) => {
-      const task = taskService.getById(taskId);
-      return sum + (task?.price || 0);
-    }, 0);
-  };
 
   const stats = [
     {
       title: 'Total Amount',
-      value: `$${proposal?.totalAmount}`
-    },
-    {
-      title: 'Locations',
-      value: proposal?.locations.length
+      value: `$${proposal?.totalAmount || 0}`
     },
     {
       title: 'Status',
-      value: <StatusTag status={proposal?.status} />
+      value: proposal?.status ? proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1) : 'Unknown'
     },
     {
-      title: 'Frequency',
-      value: proposal?.frequency
+      title: 'Created Date',
+      value: proposal?.createdDate ? new Date(proposal.createdDate).toLocaleDateString() : 'Unknown'
+    },
+    {
+      title: 'Number of Tasks',
+      value: tasks.length
     }
   ];
 
-  const handleApprove = () => {
-    proposalService.updateStatus(Number(proposalId), 'approved');
-    loadProposalDetails();
-  };
-
-  const handleReject = () => {
-    proposalService.updateStatus(Number(proposalId), 'rejected');
-    loadProposalDetails();
-  };
-
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <DashboardLayout>
+        <div className="loading">Loading proposal details...</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!proposal || !client) {
+    return (
+      <DashboardLayout>
+        <div className="error">Proposal not found</div>
+      </DashboardLayout>
+    );
   }
 
   return (
     <DashboardLayout>
-      <div className="container">
+      <div className="page-content">
         <div className="page-header">
           <h1>Proposal Details</h1>
-          {proposal.status === 'pending' && (
-            <div className="button-group">
+          <div className="header-actions">
+            {checkPermission('canManageProposals') && (
               <button
-                className="button success"
-                onClick={handleApprove}
+                className="btn-primary"
+                onClick={() => navigate(`/proposals/${id}/edit`)}
               >
-                Approve
+                Edit Proposal
               </button>
-              <button
-                className="button danger"
-                onClick={handleReject}
-              >
-                Reject
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        <div className="stats-grid">
+        <div className="stats-row">
           {stats.map((stat, index) => (
             <Card
               key={index}
@@ -113,35 +122,31 @@ const ProposalDetailsPage = () => {
         </div>
 
         <div className="section">
-          <h2>Locations and Services</h2>
-          <Table
-            columns={locationColumns}
-            data={proposal.locations.map(locId => locationService.getById(locId))}
-          />
-        </div>
-
-        <div className="section">
-          <h2>Notes</h2>
-          <div className="card">
-            <p>{proposal.notes || 'No notes provided'}</p>
+          <h2>Client Information</h2>
+          <div className="info-grid">
+            <div className="info-item">
+              <label>Name:</label>
+              <span>{client.firstName} {client.lastName}</span>
+            </div>
+            <div className="info-item">
+              <label>Email:</label>
+              <span>{client.email}</span>
+            </div>
+            <div className="info-item">
+              <label>Phone:</label>
+              <span>{client.phone}</span>
+            </div>
           </div>
         </div>
 
-        <div className="form-actions">
-          <button
-            className="button"
-            onClick={() => navigate(`/clients/${id}/proposals`)}
-          >
-            Back to Proposals
-          </button>
-          {proposal.status === 'pending' && (
-            <button
-              className="button primary"
-              onClick={() => navigate(`/clients/${id}/proposals/${proposalId}/edit`)}
-            >
-              Edit Proposal
-            </button>
-          )}
+        <div className="section">
+          <h2>Tasks</h2>
+          <div className="table-container">
+            <Table
+              columns={columns}
+              data={tasks}
+            />
+          </div>
         </div>
       </div>
     </DashboardLayout>

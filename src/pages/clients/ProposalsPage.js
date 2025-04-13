@@ -1,41 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { proposalService, authService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { useRole } from '../../context/RoleContext';
 
 const ProposalsPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [client, setClient] = useState(null);
+  const { clientId } = useParams();
   const [proposals, setProposals] = useState([]);
+  const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { checkPermission } = useRole();
 
   useEffect(() => {
     loadProposals();
-  }, [id]);
+  }, [clientId]);
 
   const loadProposals = () => {
-    const users = authService.getAll();
-    const clientUser = users.find(user => user.id === Number(id));
+    const allProposals = proposalService.getAll();
+    const clientProposals = clientId 
+      ? allProposals.filter(p => p.clientId === parseInt(clientId))
+      : allProposals;
     
-    if (!clientUser || clientUser.role !== 'client') {
-      navigate('/clients');
-      return;
-    }
-
-    const clientProposals = proposalService.getByClient(Number(id));
-    setClient(clientUser);
     setProposals(clientProposals);
+    
+    if (clientId) {
+      const clientData = authService.getAll().find(user => user.id === parseInt(clientId));
+      setClient(clientData);
+    }
+    
     setLoading(false);
   };
 
   const columns = [
-    { key: 'createdDate', label: 'Date' },
     {
-      key: 'status',
-      label: 'Status',
-      render: (row) => <StatusTag status={row.status} />
+      key: 'client',
+      label: 'Client',
+      render: (row) => {
+        const client = authService.getAll().find(user => user.id === row.clientId);
+        return client ? `${client.firstName} ${client.lastName}` : 'Unknown';
+      }
     },
     {
       key: 'totalAmount',
@@ -43,16 +48,22 @@ const ProposalsPage = () => {
       render: (row) => `$${row.totalAmount}`
     },
     {
-      key: 'frequency',
-      label: 'Frequency'
+      key: 'status',
+      label: 'Status',
+      render: (row) => <StatusTag status={row.status} />
+    },
+    {
+      key: 'createdDate',
+      label: 'Created Date',
+      render: (row) => new Date(row.createdDate).toLocaleDateString()
     }
   ];
 
   const actions = [
     {
       label: 'View',
-      className: 'edit',
-      onClick: (row) => navigate(`/clients/${id}/proposals/${row.id}`)
+      className: 'btn-view',
+      onClick: (row) => navigate(`/proposals/${row.id}`)
     }
   ];
 
@@ -70,25 +81,43 @@ const ProposalsPage = () => {
       value: proposals.filter(p => p.status === 'approved').length
     },
     {
-      title: 'Total Value',
-      value: `$${proposals.reduce((sum, p) => sum + p.totalAmount, 0)}`
+      title: 'Rejected',
+      value: proposals.filter(p => p.status === 'rejected').length
     }
   ];
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="loading">Loading proposals...</div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="container">
+      <div className="page-content">
         <div className="page-header">
-          <h1>Proposals - {client?.firstName} {client?.lastName}</h1>
-          <button
-            className="button"
-            onClick={() => navigate(`/clients/${id}/proposals/create`)}
-          >
-            Create Proposal
-          </button>
+          <h1>{client ? `${client.firstName} ${client.lastName}'s Proposals` : 'All Proposals'}</h1>
+          {checkPermission('canManageProposals') && (
+            <button
+              className="btn-primary"
+              onClick={() => navigate(clientId ? `/proposals/create?clientId=${clientId}` : '/proposals/create')}
+            >
+              Create Proposal
+            </button>
+          )}
+          {clientId && (
+            <button
+              className="btn-secondary"
+              onClick={() => navigate(`/clients/${clientId}`)}
+            >
+              Back to Client
+            </button>
+          )}
         </div>
 
-        <div className="stats-grid">
+        <div className="stats-row">
           {stats.map((stat, index) => (
             <Card
               key={index}
@@ -98,19 +127,12 @@ const ProposalsPage = () => {
           ))}
         </div>
 
-        <Table
-          columns={columns}
-          data={proposals}
-          actions={actions}
-        />
-
-        <div className="form-actions">
-          <button
-            className="button"
-            onClick={() => navigate(`/clients/${id}`)}
-          >
-            Back to Client Details
-          </button>
+        <div className="table-container">
+          <Table
+            columns={columns}
+            data={proposals}
+            actions={actions}
+          />
         </div>
       </div>
     </DashboardLayout>

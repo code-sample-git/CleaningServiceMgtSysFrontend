@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { qaService, locationService } from '../../services/mockData';
-import { Table, Card } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { qaReportService as qaService } from '../../services/mockData';
+import { locationService } from '../../services/mockData';
+import { Table, Card } from '../../components/common';
+import { useRole } from '../../context/RoleContext';
 
 const QAReportsPage = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { checkPermission } = useRole();
 
   useEffect(() => {
     loadReports();
@@ -42,7 +45,7 @@ const QAReportsPage = () => {
     {
       label: 'View',
       className: 'edit',
-      onClick: (row) => navigate(`/qa-reports/${row.id}`)
+      onClick: (row) => navigate(`/reports/${row.id}`)
     }
   ];
 
@@ -64,12 +67,14 @@ const QAReportsPage = () => {
       <div className="container">
         <div className="page-header">
           <h1>QA Reports</h1>
-          <button
-            className="button"
-            onClick={() => navigate('/qa-reports/create')}
-          >
-            Create Report
-          </button>
+          {checkPermission('canCreateReports') && (
+            <button
+              className="button"
+              onClick={() => navigate('/reports/create')}
+            >
+              Create Report
+            </button>
+          )}
         </div>
 
         <div className="stats-grid">

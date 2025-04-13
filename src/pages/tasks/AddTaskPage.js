@@ -141,7 +141,7 @@ function AddTaskPage() {
             <div className="form-actions">
               <button
                 type="button"
-                className="btn-secondary"
+                className="button"
                 onClick={handleCancel}
                 disabled={isLoading}
               >

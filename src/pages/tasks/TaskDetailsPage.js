@@ -16,9 +16,10 @@ function TaskDetailsPage() {
 
   const loadTask = async () => {
     try {
-      const result = await taskService.getTaskById(id);
-      if (result.success) {
-        setTask(result.data);
+      const taskId = parseInt(id, 10);
+      const result = await taskService.getById(taskId);
+      if (result) {
+        setTask(result);
       } else {
         setError('Task not found');
       }
@@ -31,9 +32,10 @@ function TaskDetailsPage() {
 
   const handleStatusUpdate = async (newStatus) => {
     try {
-      const result = await taskService.updateTaskStatus(id, newStatus);
-      if (result.success) {
-        setTask(prev => ({ ...prev, status: newStatus }));
+      const taskId = parseInt(id, 10);
+      const updatedTask = await taskService.updateTaskStatus(taskId, newStatus);
+      if (updatedTask) {
+        setTask(updatedTask);
       } else {
         setError('Failed to update task status');
       }
@@ -58,7 +60,7 @@ function TaskDetailsPage() {
     return (
       <DashboardLayout>
         <div className="error-message">{error || 'Task not found'}</div>
-        <button className="btn-secondary" onClick={handleBack}>
+        <button className="button" onClick={handleBack}>
           Back to Tasks
         </button>
       </DashboardLayout>
@@ -69,7 +71,7 @@ function TaskDetailsPage() {
     <DashboardLayout>
       <div className="page-content">
         <div className="page-header">
-          <button className="btn-secondary" onClick={handleBack}>
+          <button className="button" onClick={handleBack}>
             Back to Tasks
           </button>
           <h1>{task.name}</h1>

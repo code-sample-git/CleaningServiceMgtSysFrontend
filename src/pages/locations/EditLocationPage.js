@@ -1,20 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { locationService } from '../../services/mockData';
 import { Form, FormInput, FormSelect } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { useRole } from '../../context/RoleContext';
 
-const AddLocationPage = () => {
+const EditLocationPage = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const clientId = searchParams.get('clientId');
+  const { checkPermission } = useRole();
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    status: 'active',
-    clientId: clientId ? Number(clientId) : null
+    status: 'active'
   });
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!checkPermission('canManageLocations')) {
+      navigate('/locations');
+      return;
+    }
+    loadLocationDetails();
+  }, [id]);
+
+  const loadLocationDetails = () => {
+    const location = locationService.getById(Number(id));
+    if (!location) {
+      navigate('/locations');
+      return;
+    }
+    setFormData(location);
+    setLoading(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,14 +52,10 @@ const AddLocationPage = () => {
     }
 
     try {
-      locationService.add(formData);
-      if (clientId) {
-        navigate(`/clients/${clientId}`);
-      } else {
-        navigate('/locations');
-      }
+      locationService.update(Number(id), formData);
+      navigate('/locations');
     } catch (err) {
-      setError('Failed to add location. Please try again.');
+      setError('Failed to update location. Please try again.');
     }
   };
 
@@ -49,11 +64,21 @@ const AddLocationPage = () => {
     { value: 'inactive', label: 'Inactive' }
   ];
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="container">
+          <div className="loading">Loading location details...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="container">
         <div className="page-header">
-          <h1>Add New Location</h1>
+          <h1>Edit Location</h1>
         </div>
 
         <div className="card">
@@ -88,7 +113,7 @@ const AddLocationPage = () => {
               <button
                 type="button"
                 className="button"
-                onClick={() => clientId ? navigate(`/clients/${clientId}`) : navigate('/locations')}
+                onClick={() => navigate('/locations')}
               >
                 Cancel
               </button>
@@ -96,7 +121,7 @@ const AddLocationPage = () => {
                 type="submit"
                 className="button is-primary"
               >
-                Add Location
+                Save Changes
               </button>
             </div>
           </Form>
@@ -106,4 +131,4 @@ const AddLocationPage = () => {
   );
 };
 
-export default AddLocationPage; 
+export default EditLocationPage; 

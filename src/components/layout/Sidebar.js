@@ -3,13 +3,13 @@ import { NavLink } from 'react-router-dom';
 import { useRole } from '../../context/RoleContext';
 
 const Sidebar = () => {
-  const { checkPermission } = useRole();
+  const { checkPermission, userRole } = useRole();
 
   const menuItems = [
     {
       label: 'Dashboard',
       path: '/home',
-      permission: 'canManageUsers'
+      permission: true // Everyone can see dashboard
     },
     {
       label: 'Staff',
@@ -24,17 +24,17 @@ const Sidebar = () => {
     {
       label: 'Locations',
       path: '/locations',
-      permission: 'canManageLocations'
+      permission: ['canManageLocations', 'canViewLocations']
     },
     {
       label: 'Tasks',
       path: '/tasks',
-      permission: 'canManageTasks'
+      permission: ['canManageTasks', 'canViewAssignedTasks']
     },
     {
       label: 'QA Reports',
       path: '/reports',
-      permission: 'canViewReports'
+      permission: ['canViewReports', 'canCreateReports']
     },
     {
       label: 'Inventory',
@@ -44,15 +44,20 @@ const Sidebar = () => {
     {
       label: 'Supplies',
       path: '/supply',
-      permission: 'canManageInventory'
+      permission: ['canManageInventory', 'canRequestSupplies']
     }
   ];
 
   return (
     <aside className="sidebar">
       <nav className="sidebar-nav">
-        {menuItems.map((item) => (
-          checkPermission(item.permission) && (
+        {menuItems.map((item) => {
+          const hasPermission = item.permission === true || 
+            (Array.isArray(item.permission) 
+              ? item.permission.some(p => checkPermission(p))
+              : checkPermission(item.permission));
+
+          return hasPermission && (
             <NavLink
               key={item.path}
               to={item.path}
@@ -62,8 +67,8 @@ const Sidebar = () => {
             >
               {item.label}
             </NavLink>
-          )
-        ))}
+          );
+        })}
       </nav>
     </aside>
   );

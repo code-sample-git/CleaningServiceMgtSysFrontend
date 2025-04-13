@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { qaService, locationService } from '../../services/mockData';
-import { Form, FormSelect, FormInput, FormTextarea } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { locationService, qaReportService as qaService } from '../../services/mockData';
+import { Form, FormSelect, FormInput, FormTextarea } from '../../components/common';
 
 const CreateQAReportPage = () => {
   const navigate = useNavigate();
@@ -10,6 +10,7 @@ const CreateQAReportPage = () => {
     locationId: '',
     rating: '',
     comments: '',
+    date: new Date().toISOString().split('T')[0],
     items: [
       { category: 'Cleanliness', rating: '', comment: '' },
       { category: 'Organization', rating: '', comment: '' },
@@ -53,15 +54,17 @@ const CreateQAReportPage = () => {
     try {
       const reportData = {
         ...formData,
+        locationId: Number(formData.locationId),
         rating: Number(formData.rating),
         items: formData.items.map(item => ({
           ...item,
           rating: Number(item.rating)
         }))
       };
-      qaService.add(reportData);
-      navigate('/qa-reports');
+      qaService.create(reportData);
+      navigate('/reports');
     } catch (err) {
+      console.error('Error creating report:', err);
       setError('Failed to create report. Please try again.');
     }
   };

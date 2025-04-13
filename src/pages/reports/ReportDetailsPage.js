@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { qaService, locationService } from '../../services/mockData';
-import { Loading } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { qaReportService as qaService, locationService } from '../../services/mockData';
+import { Loading } from '../../components/common';
 
 const ReportDetailsPage = () => {
   const { id } = useParams();
@@ -102,7 +102,7 @@ const ReportDetailsPage = () => {
         <div className="form-actions">
           <button
             className="button"
-            onClick={() => navigate('/qa-reports')}
+            onClick={() => navigate('/reports')}
           >
             Back to Reports
           </button>

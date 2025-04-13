@@ -1,40 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/mockData';
+import { qaReportService, authService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useRole } from '../../context/RoleContext';
 
-const StaffPage = () => {
-  const [staff, setStaff] = useState([]);
+const QAReportsPage = () => {
+  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { checkPermission } = useRole();
-  const currentUser = authService.getCurrentUser();
 
   useEffect(() => {
-    loadStaff();
+    loadReports();
   }, []);
 
-  const loadStaff = () => {
-    const staffData = authService.getAll().filter(user => user.role === 'staff');
-    setStaff(staffData);
+  const loadReports = () => {
+    const reportsData = qaReportService.getAll();
+    setReports(reportsData);
     setLoading(false);
   };
 
   const columns = [
+    { key: 'location', label: 'Location' },
     {
-      key: 'name',
-      label: 'Name',
-      render: (row) => `${row.firstName} ${row.lastName}`
+      key: 'inspector',
+      label: 'Inspector',
+      render: (row) => {
+        const user = authService.getAll().find(u => u.id === row.inspectorId);
+        return user ? `${user.firstName} ${user.lastName}` : 'Unknown';
+      }
     },
     {
-      key: 'email',
-      label: 'Email'
+      key: 'date',
+      label: 'Date',
+      render: (row) => new Date(row.date).toLocaleDateString()
     },
     {
-      key: 'phone',
-      label: 'Phone'
+      key: 'score',
+      label: 'Score',
+      render: (row) => `${row.score}%`
     },
     {
       key: 'status',
@@ -47,30 +52,35 @@ const StaffPage = () => {
     {
       label: 'View',
       className: 'btn-view',
-      onClick: (row) => navigate(`/staff/${row.id}`),
-      show: (row) => row.id === currentUser?.id || checkPermission('canManageStaff')
+      onClick: (row) => navigate(`/reports/${row.id}`)
     }
   ];
 
   const stats = [
     {
-      title: 'Total Staff',
-      value: staff.length
+      title: 'Total Reports',
+      value: reports.length
     },
     {
-      title: 'Active Staff',
-      value: staff.filter(member => member.status === 'active').length
+      title: 'Average Score',
+      value: reports.length > 0 
+        ? `${Math.round(reports.reduce((sum, r) => sum + r.score, 0) / reports.length)}%`
+        : '0%'
     },
     {
-      title: 'On Leave',
-      value: staff.filter(member => member.status === 'on_leave').length
+      title: 'Passed',
+      value: reports.filter(r => r.status === 'passed').length
+    },
+    {
+      title: 'Failed',
+      value: reports.filter(r => r.status === 'failed').length
     }
   ];
 
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="loading">Loading staff members...</div>
+        <div className="loading">Loading QA reports...</div>
       </DashboardLayout>
     );
   }
@@ -79,13 +89,13 @@ const StaffPage = () => {
     <DashboardLayout>
       <div className="page-content">
         <div className="page-header">
-          <h1>Staff Management</h1>
-          {checkPermission('canManageStaff') && (
+          <h1>QA Reports</h1>
+          {checkPermission('canCreateReports') && (
             <button
               className="btn-primary"
-              onClick={() => navigate('/staff/add')}
+              onClick={() => navigate('/reports/create')}
             >
-              Add Staff
+              Create Report
             </button>
           )}
         </div>
@@ -103,7 +113,7 @@ const StaffPage = () => {
         <div className="table-container">
           <Table
             columns={columns}
-            data={staff}
+            data={reports}
             actions={actions}
           />
         </div>
@@ -112,4 +122,4 @@ const StaffPage = () => {
   );
 };
 
-export default StaffPage; 
+export default QAReportsPage; 

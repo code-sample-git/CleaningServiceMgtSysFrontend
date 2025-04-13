@@ -12,7 +12,9 @@ const rolePermissions = {
     canCreateReports: true,
     canManageInventory: true,
     canApproveRequests: true,
-    canManageProposals: true
+    canManageProposals: true,
+    canManageStaff: true,
+    canManageClients: true
   },
   manager: {
     canManageUsers: false,
@@ -22,7 +24,9 @@ const rolePermissions = {
     canCreateReports: true,
     canManageInventory: true,
     canApproveRequests: true,
-    canManageProposals: true
+    canManageProposals: true,
+    canManageStaff: true,
+    canManageClients: true
   },
   staff: {
     canManageUsers: false,

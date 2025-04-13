@@ -70,33 +70,31 @@ const mockTasks = [
     id: 1,
     name: "General Cleaning",
     description: "Regular cleaning of all areas",
-    frequency: "daily",
-    estimatedDuration: 120, // in minutes
-    price: 100
+    location: "Office Building A",
+    assignedTo: "Bob Wilson",
+    dueDate: "2024-03-20",
+    status: "Pending",
+    notes: "Focus on high-traffic areas"
   },
   {
     id: 2,
     name: "Floor Maintenance",
     description: "Floor cleaning and waxing",
-    frequency: "weekly",
-    estimatedDuration: 180,
-    price: 250
+    location: "Shopping Mall B",
+    assignedTo: "Bob Wilson",
+    dueDate: "2024-03-22",
+    status: "In Progress",
+    notes: "Use new wax formula"
   },
   {
     id: 3,
     name: "Window Cleaning",
     description: "Clean all windows",
-    frequency: "weekly",
-    estimatedDuration: 90,
-    price: 150
-  },
-  {
-    id: 4,
-    name: "Deep Cleaning",
-    description: "Thorough cleaning of all areas",
-    frequency: "monthly",
-    estimatedDuration: 360,
-    price: 500
+    location: "Office Building A",
+    assignedTo: "Jane Smith",
+    dueDate: "2024-03-25",
+    status: "Completed",
+    notes: "All windows cleaned and inspected"
   }
 ];
 
@@ -226,6 +224,9 @@ const initializeMockData = () => {
   localStorage.setItem('proposals', JSON.stringify(mockProposals));
 };
 
+// Initialize mock data when the module loads
+initializeMockData();
+
 // Services
 const createService = (key) => ({
   getAll: () => JSON.parse(localStorage.getItem(key) || '[]'),
@@ -249,21 +250,22 @@ const createService = (key) => ({
   },
   delete: (id) => {
     const items = JSON.parse(localStorage.getItem(key) || '[]');
-    const filtered = items.filter(item => item.id !== id);
-    localStorage.setItem(key, JSON.stringify(filtered));
+    const filteredItems = items.filter(item => item.id !== id);
+    localStorage.setItem(key, JSON.stringify(filteredItems));
+    return true;
+  },
+  getByClient: (clientId) => {
+    const items = JSON.parse(localStorage.getItem(key) || '[]');
+    return items.filter(item => item.clientId === clientId);
   }
 });
 
-// Initialize data
-initializeMockData();
-
-// Export services
+// Auth service with additional methods
 export const authService = {
   ...createService('users'),
   login: (email, password) => {
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     const user = users.find(u => u.email === email && u.password === password);
-    
     if (user) {
       const { password, ...userWithoutPassword } = user;
       localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
@@ -279,6 +281,7 @@ export const authService = {
   }
 };
 
+// Location service with additional methods
 export const locationService = {
   ...createService('locations'),
   getByClient: (clientId) => {
@@ -287,31 +290,38 @@ export const locationService = {
   }
 };
 
-export const taskService = createService('tasks');
-export const qaService = createService('qaReports');
-export const timeEntryService = {
-  ...createService('timeEntries'),
-  getByUser: (userId) => {
-    return JSON.parse(localStorage.getItem('timeEntries') || '[]')
-      .filter(entry => entry.userId === userId);
+// Export other services
+const taskService = createService('tasks');
+taskService.updateTaskStatus = async (id, newStatus) => {
+  const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  const index = tasks.findIndex(task => task.id === id);
+  if (index !== -1) {
+    tasks[index] = { ...tasks[index], status: newStatus };
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    return tasks[index];
   }
+  return null;
 };
+export { taskService };
+export const qaReportService = createService('qaReports');
+const timeEntryService = createService('timeEntries');
+timeEntryService.getByUser = (userId) => {
+  const entries = JSON.parse(localStorage.getItem('timeEntries') || '[]');
+  return entries.filter(entry => entry.userId === userId);
+};
+export { timeEntryService };
 export const inventoryService = createService('inventory');
 export const supplyService = createService('supplies');
-export const proposalService = {
-  ...createService('proposals'),
-  getByClient: (clientId) => {
-    return JSON.parse(localStorage.getItem('proposals') || '[]')
-      .filter(proposal => proposal.clientId === clientId);
-  },
-  updateStatus: (id, status) => {
-    const proposals = JSON.parse(localStorage.getItem('proposals') || '[]');
-    const index = proposals.findIndex(p => p.id === id);
-    if (index !== -1) {
-      proposals[index].status = status;
-      localStorage.setItem('proposals', JSON.stringify(proposals));
-      return proposals[index];
-    }
-    return null;
-  }
+export const proposalService = createService('proposals');
+
+export {
+  mockUsers,
+  mockLocations,
+  mockTasks,
+  mockQAReports,
+  mockTimeEntries,
+  mockInventory,
+  mockSupplies,
+  mockProposals,
+  initializeMockData
 }; 

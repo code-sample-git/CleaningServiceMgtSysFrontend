@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { proposalService, locationService, taskService, authService } from '../../services/mockData';
 import { Table, Card } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { useRole } from '../../context/RoleContext';
 
-const CreateProposalPage = () => {
-  const [searchParams] = useSearchParams();
-  const clientId = searchParams.get('clientId');
+const EditProposalPage = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { checkPermission } = useRole();
+  const [proposal, setProposal] = useState(null);
   const [client, setClient] = useState(null);
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [locationTasks, setLocationTasks] = useState({});
@@ -15,26 +17,39 @@ const CreateProposalPage = () => {
   const [notes, setNotes] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    loadClientDetails();
-  }, [clientId]);
+    if (!checkPermission('canManageProposals')) {
+      navigate('/proposals');
+      return;
+    }
+    loadProposalDetails();
+  }, [id]);
 
-  const loadClientDetails = () => {
-    if (!clientId) {
-      navigate('/clients');
+  const loadProposalDetails = () => {
+    const proposalData = proposalService.getById(Number(id));
+    if (!proposalData) {
+      navigate('/proposals');
       return;
     }
 
-    const users = authService.getAll();
-    const clientUser = users.find(user => user.id === Number(clientId));
-    
-    if (!clientUser || clientUser.role !== 'client') {
-      navigate('/clients');
+    const clientData = authService.getAll().find(user => user.id === proposalData.clientId);
+    if (!clientData || clientData.role !== 'client') {
+      navigate('/proposals');
       return;
     }
 
-    setClient(clientUser);
+    setProposal(proposalData);
+    setClient(clientData);
+    setSelectedLocations(proposalData.locations.map(loc => loc.id));
+    setLocationTasks(proposalData.locations.reduce((acc, loc) => {
+      acc[loc.id] = loc.tasks;
+      return acc;
+    }, {}));
+    setFrequency(proposalData.frequency);
+    setNotes(proposalData.notes || '');
+    setTotalAmount(proposalData.totalAmount);
     setLoading(false);
   };
 
@@ -67,7 +82,11 @@ const CreateProposalPage = () => {
   };
 
   const calculateTotal = () => {
+    if (!locationTasks || Object.keys(locationTasks).length === 0) return 0;
+    
     return Object.entries(locationTasks).reduce((total, [locationId, tasks]) => {
+      if (!tasks || !Array.isArray(tasks)) return total;
+      
       return total + tasks.reduce((sum, taskId) => {
         const task = taskService.getById(taskId);
         return sum + (task?.price || 0);
@@ -76,29 +95,33 @@ const CreateProposalPage = () => {
   };
 
   useEffect(() => {
-    if (selectedLocations.length > 0) {
+    if (selectedLocations.length > 0 && locationTasks) {
       setTotalAmount(calculateTotal());
+    } else {
+      setTotalAmount(0);
     }
   }, [locationTasks, selectedLocations]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const proposal = {
-      clientId: Number(clientId),
+    const updatedProposal = {
+      ...proposal,
       locations: selectedLocations.map(locId => ({
         id: locId,
         tasks: locationTasks[locId]
       })),
       frequency,
       notes,
-      totalAmount: Number(totalAmount),
-      status: 'pending',
-      createdDate: new Date().toISOString()
+      totalAmount: Number(totalAmount)
     };
 
-    proposalService.create(proposal);
-    navigate(`/clients/${clientId}/proposals`);
+    try {
+      proposalService.update(Number(id), updatedProposal);
+      navigate(`/proposals/${id}`);
+    } catch (err) {
+      setError('Failed to update proposal. Please try again.');
+    }
   };
 
   const locationColumns = [
@@ -118,8 +141,11 @@ const CreateProposalPage = () => {
   ];
 
   const renderLocationTasks = (locationId) => {
-    const tasks = taskService.getAll();
-    const selectedTasks = locationTasks[locationId] || [];
+    const location = locationService.getById(locationId);
+    if (!location) return null;
+
+    const tasks = taskService.getByLocation(locationId);
+    if (!tasks || tasks.length === 0) return <div>No tasks available for this location</div>;
 
     return (
       <div className="task-list">
@@ -127,11 +153,11 @@ const CreateProposalPage = () => {
           <div key={task.id} className="task-item">
             <input
               type="checkbox"
-              checked={selectedTasks.includes(task.id)}
+              checked={locationTasks[locationId]?.includes(task.id)}
               onChange={() => handleTaskSelect(locationId, task.id)}
             />
             <span>{task.name}</span>
-            <span className="task-price">${task.price}</span>
+            <span className="price">${task.price}</span>
           </div>
         ))}
       </div>
@@ -139,22 +165,36 @@ const CreateProposalPage = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <DashboardLayout>
+        <div className="loading">Loading proposal details...</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!proposal || !client) {
+    return (
+      <DashboardLayout>
+        <div className="error">Proposal not found</div>
+      </DashboardLayout>
+    );
   }
 
   return (
     <DashboardLayout>
-      <div className="container">
+      <div className="page-content">
         <div className="page-header">
-          <h1>Create Proposal - {client?.firstName} {client?.lastName}</h1>
+          <h1>Edit Proposal</h1>
         </div>
+
+        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="section">
             <h2>Select Locations</h2>
             <Table
               columns={locationColumns}
-              data={locationService.getByClient(Number(clientId))}
+              data={locationService.getByClient(client.id) || []}
             />
           </div>
 
@@ -163,6 +203,8 @@ const CreateProposalPage = () => {
               <h2>Select Tasks for Each Location</h2>
               {selectedLocations.map(locationId => {
                 const location = locationService.getById(locationId);
+                if (!location) return null;
+                
                 return (
                   <div key={locationId} className="location-tasks card">
                     <h3>{location.name}</h3>
@@ -214,17 +256,17 @@ const CreateProposalPage = () => {
           <div className="form-actions">
             <button
               type="button"
-              className="button"
-              onClick={() => navigate(`/clients/${clientId}`)}
+              className="btn-secondary"
+              onClick={() => navigate(`/proposals/${id}`)}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="button primary"
+              className="btn-primary"
               disabled={selectedLocations.length === 0}
             >
-              Create Proposal
+              Save Changes
             </button>
           </div>
         </form>
@@ -233,4 +275,4 @@ const CreateProposalPage = () => {
   );
 };
 
-export default CreateProposalPage; 
+export default EditProposalPage; 

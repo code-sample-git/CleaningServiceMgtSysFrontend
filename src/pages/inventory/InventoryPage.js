@@ -1,45 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/mockData';
+import { inventoryService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useRole } from '../../context/RoleContext';
 
-const StaffPage = () => {
-  const [staff, setStaff] = useState([]);
+const InventoryPage = () => {
+  const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { checkPermission } = useRole();
-  const currentUser = authService.getCurrentUser();
 
   useEffect(() => {
-    loadStaff();
+    loadInventory();
   }, []);
 
-  const loadStaff = () => {
-    const staffData = authService.getAll().filter(user => user.role === 'staff');
-    setStaff(staffData);
+  const loadInventory = () => {
+    const inventoryData = inventoryService.getAll();
+    setInventory(inventoryData);
     setLoading(false);
   };
 
   const columns = [
+    { key: 'name', label: 'Item Name' },
+    { key: 'category', label: 'Category' },
     {
-      key: 'name',
-      label: 'Name',
-      render: (row) => `${row.firstName} ${row.lastName}`
+      key: 'quantity',
+      label: 'Quantity',
+      render: (row) => `${row.quantity} ${row.unit}`
     },
     {
-      key: 'email',
-      label: 'Email'
-    },
-    {
-      key: 'phone',
-      label: 'Phone'
+      key: 'minQuantity',
+      label: 'Min Quantity',
+      render: (row) => `${row.minQuantity} ${row.unit}`
     },
     {
       key: 'status',
       label: 'Status',
-      render: (row) => <StatusTag status={row.status} />
+      render: (row) => {
+        const status = row.quantity <= row.minQuantity ? 'low' : 'in-stock';
+        return <StatusTag status={status} />;
+      }
     }
   ];
 
@@ -47,30 +48,33 @@ const StaffPage = () => {
     {
       label: 'View',
       className: 'btn-view',
-      onClick: (row) => navigate(`/staff/${row.id}`),
-      show: (row) => row.id === currentUser?.id || checkPermission('canManageStaff')
+      onClick: (row) => navigate(`/inventory/${row.id}`)
     }
   ];
 
   const stats = [
     {
-      title: 'Total Staff',
-      value: staff.length
+      title: 'Total Items',
+      value: inventory.length
     },
     {
-      title: 'Active Staff',
-      value: staff.filter(member => member.status === 'active').length
+      title: 'Low Stock',
+      value: inventory.filter(item => item.quantity <= item.minQuantity).length
     },
     {
-      title: 'On Leave',
-      value: staff.filter(member => member.status === 'on_leave').length
+      title: 'In Stock',
+      value: inventory.filter(item => item.quantity > item.minQuantity).length
+    },
+    {
+      title: 'Categories',
+      value: new Set(inventory.map(item => item.category)).size
     }
   ];
 
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="loading">Loading staff members...</div>
+        <div className="loading">Loading inventory...</div>
       </DashboardLayout>
     );
   }
@@ -79,13 +83,13 @@ const StaffPage = () => {
     <DashboardLayout>
       <div className="page-content">
         <div className="page-header">
-          <h1>Staff Management</h1>
-          {checkPermission('canManageStaff') && (
+          <h1>Inventory Management</h1>
+          {checkPermission('canManageInventory') && (
             <button
               className="btn-primary"
-              onClick={() => navigate('/staff/add')}
+              onClick={() => navigate('/inventory/add')}
             >
-              Add Staff
+              Add Item
             </button>
           )}
         </div>
@@ -103,7 +107,7 @@ const StaffPage = () => {
         <div className="table-container">
           <Table
             columns={columns}
-            data={staff}
+            data={inventory}
             actions={actions}
           />
         </div>
@@ -112,4 +116,4 @@ const StaffPage = () => {
   );
 };
 
-export default StaffPage; 
+export default InventoryPage; 

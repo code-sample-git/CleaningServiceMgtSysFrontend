@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService, inventoryService, supplyService, qaService, proposalService } from '../services/mockData';
+import { authService, inventoryService, supplyService, qaReportService as qaService, proposalService } from '../services/mockData';
+import { useRole } from '../context/RoleContext';
 import { Card } from '../components/common';
 import DashboardLayout from '../components/layout/DashboardLayout';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const { checkPermission, userRole } = useRole();
   const [stats, setStats] = useState({
     inventory: { total: 0, lowStock: 0 },
     supplies: { total: 0, pending: 0 },
@@ -26,7 +28,7 @@ const DashboardPage = () => {
 
     // Get supply stats
     const supplies = supplyService.getAll();
-    const pendingSupplies = supplies.filter(supply => supply.status === 'pending');
+    const pendingSupplies = supplies.filter(supply => supply.condition === 'needs maintenance');
 
     // Get staff stats
     const users = authService.getAll();
@@ -70,14 +72,15 @@ const DashboardPage = () => {
     });
   };
 
-  const sections = [
+  const allSections = [
     {
       title: 'Staff Management',
       cards: [
         { title: 'Total Staff', value: stats.staff.total },
         { title: 'Active Staff', value: stats.staff.active }
       ],
-      action: { label: 'View Staff', onClick: () => navigate('/staff') }
+      action: { label: 'View Staff', onClick: () => navigate('/staff') },
+      permission: 'canManageUsers'
     },
     {
       title: 'Client Management',
@@ -85,7 +88,8 @@ const DashboardPage = () => {
         { title: 'Total Clients', value: stats.clients.total },
         { title: 'Active Proposals', value: stats.proposals.pending }
       ],
-      action: { label: 'View Clients', onClick: () => navigate('/clients') }
+      action: { label: 'View Clients', onClick: () => navigate('/clients') },
+      permission: 'canManageUsers'
     },
     {
       title: 'Quality Assurance',
@@ -93,7 +97,8 @@ const DashboardPage = () => {
         { title: 'Total Reports', value: stats.qaReports.total },
         { title: 'Average Rating', value: `${stats.qaReports.avgRating}/5` }
       ],
-      action: { label: 'View Reports', onClick: () => navigate('/qa-reports') }
+      action: { label: 'View Reports', onClick: () => navigate('/reports') },
+      permission: ['canViewReports', 'canCreateReports']
     },
     {
       title: 'Inventory Overview',
@@ -101,7 +106,8 @@ const DashboardPage = () => {
         { title: 'Total Items', value: stats.inventory.total },
         { title: 'Low Stock Items', value: stats.inventory.lowStock }
       ],
-      action: { label: 'View Inventory', onClick: () => navigate('/inventory') }
+      action: { label: 'View Inventory', onClick: () => navigate('/inventory') },
+      permission: 'canManageInventory'
     },
     {
       title: 'Supplies Overview',
@@ -109,32 +115,41 @@ const DashboardPage = () => {
         { title: 'Total Supplies', value: stats.supplies.total },
         { title: 'Pending Requests', value: stats.supplies.pending }
       ],
-      action: { label: 'View Supplies', onClick: () => navigate('/supplies') }
+      action: { label: 'View Supplies', onClick: () => navigate('/supply') },
+      permission: ['canManageInventory', 'canRequestSupplies']
     },
     {
-      title: 'Proposals',
+      title: 'My Tasks',
       cards: [
-        { title: 'Total Proposals', value: stats.proposals.total },
-        { title: 'Pending Approval', value: stats.proposals.pending }
+        { title: 'Assigned Tasks', value: stats.staff.total }, // This should be updated to show actual assigned tasks
+        { title: 'Completed Tasks', value: stats.staff.active } // This should be updated to show actual completed tasks
       ],
-      action: { label: 'View Proposals', onClick: () => navigate('/proposals') }
+      action: { label: 'View Tasks', onClick: () => navigate('/tasks') },
+      permission: ['canManageTasks', 'canViewAssignedTasks']
     }
   ];
 
+  // Filter sections based on user permissions
+  const visibleSections = allSections.filter(section => {
+    return Array.isArray(section.permission)
+      ? section.permission.some(p => checkPermission(p))
+      : checkPermission(section.permission);
+  });
+
   return (
     <DashboardLayout>
-      <div className="container">
+      <div className="page-content">
         <div className="page-header">
           <h1>Dashboard</h1>
         </div>
 
         <div className="dashboard-grid">
-          {sections.map((section, index) => (
+          {visibleSections.map((section, index) => (
             <div key={index} className="dashboard-section card">
               <div className="section-header">
                 <h2>{section.title}</h2>
                 <button
-                  className="button"
+                  className="btn-primary"
                   onClick={section.action.onClick}
                 >
                   {section.action.label}

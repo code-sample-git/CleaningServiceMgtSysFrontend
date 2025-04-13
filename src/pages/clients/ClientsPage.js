@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { authService, locationService } from '../../services/mockData';
 import { Table, Card } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { useRole } from '../../context/RoleContext';
 
 const ClientsPage = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { checkPermission } = useRole();
 
   useEffect(() => {
     loadClients();
@@ -43,13 +45,8 @@ const ClientsPage = () => {
   const actions = [
     {
       label: 'View',
-      className: 'edit',
+      className: 'btn-view',
       onClick: (row) => navigate(`/clients/${row.id}`)
-    },
-    {
-      label: 'Proposals',
-      className: 'primary',
-      onClick: (row) => navigate(`/clients/${row.id}/proposals`)
     }
   ];
 
@@ -64,17 +61,27 @@ const ClientsPage = () => {
     }
   ];
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="loading">Loading clients...</div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="container">
         <div className="page-header">
           <h1>Client Management</h1>
-          <button
-            className="button"
-            onClick={() => navigate('/clients/add')}
-          >
-            Add Client
-          </button>
+          {checkPermission('canManageClients') && (
+            <button
+              className="button"
+              onClick={() => navigate('/clients/add')}
+            >
+              Add Client
+            </button>
+          )}
         </div>
 
         <div className="stats-grid">

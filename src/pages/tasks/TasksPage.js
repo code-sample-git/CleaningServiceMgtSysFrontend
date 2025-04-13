@@ -15,8 +15,8 @@ function TasksPage() {
 
   const loadTasks = async () => {
     try {
-      const result = await taskService.getTasks();
-      setTasks(result.data || []);
+      const result = await taskService.getAll();
+      setTasks(result);
     } catch (err) {
       setError('Failed to load tasks');
     } finally {
@@ -24,25 +24,12 @@ function TasksPage() {
     }
   };
 
-  const handleViewTask = (taskId) => {
-    navigate(`/tasks/${taskId}`);
+  const handleViewTask = (id) => {
+    navigate(`/tasks/${id}`);
   };
 
   const handleAddTask = () => {
     navigate('/tasks/add');
-  };
-
-  const getStatusClass = (status) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'status-success';
-      case 'in progress':
-        return 'status-warning';
-      case 'pending':
-        return 'status-pending';
-      default:
-        return 'status-default';
-    }
   };
 
   if (isLoading) {
@@ -59,28 +46,22 @@ function TasksPage() {
         <div className="page-header">
           <h1>Tasks</h1>
           <button className="btn-primary" onClick={handleAddTask}>
-            Add New Task
+            Add Task
           </button>
         </div>
 
         {error && <div className="error-message">{error}</div>}
 
-        <div className="stats-container">
+        <div className="stats-row">
           <div className="stat-card">
             <h3>Total Tasks</h3>
-            <p>{tasks.length}</p>
+            <div className="stat-value">{tasks.length}</div>
           </div>
           <div className="stat-card">
-            <h3>Pending</h3>
-            <p>{tasks.filter(task => task.status.toLowerCase() === 'pending').length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>In Progress</h3>
-            <p>{tasks.filter(task => task.status.toLowerCase() === 'in progress').length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>Completed</h3>
-            <p>{tasks.filter(task => task.status.toLowerCase() === 'completed').length}</p>
+            <h3>Active Tasks</h3>
+            <div className="stat-value">
+              {tasks.filter(task => task.status === 'In Progress').length}
+            </div>
           </div>
         </div>
 
@@ -90,9 +71,8 @@ function TasksPage() {
               <tr>
                 <th>Task Name</th>
                 <th>Location</th>
-                <th>Assigned To</th>
-                <th>Due Date</th>
                 <th>Status</th>
+                <th>Due Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -101,19 +81,22 @@ function TasksPage() {
                 <tr key={task.id}>
                   <td>{task.name}</td>
                   <td>{task.location}</td>
-                  <td>{task.assignedTo}</td>
-                  <td>{new Date(task.dueDate).toLocaleDateString()}</td>
                   <td>
-                    <span className={`status-tag ${getStatusClass(task.status)}`}>
+                    <span className={`status-tag ${
+                      task.status === 'Completed' ? 'status-success' :
+                      task.status === 'In Progress' ? 'status-warning' :
+                      'status-danger'
+                    }`}>
                       {task.status}
                     </span>
                   </td>
+                  <td>{new Date(task.dueDate).toLocaleDateString()}</td>
                   <td>
-                    <button
-                      className="btn-secondary"
+                    <button 
+                      className="btn-view"
                       onClick={() => handleViewTask(task.id)}
                     >
-                      View Details
+                      View
                     </button>
                   </td>
                 </tr>

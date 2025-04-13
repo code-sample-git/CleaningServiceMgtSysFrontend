@@ -54,7 +54,7 @@ const ClientDetailsPage = () => {
     {
       label: 'View',
       className: 'edit',
-      onClick: (row) => navigate(`/clients/${id}/proposals/${row.id}`)
+      onClick: (row) => navigate(`/proposals/${row.id}`)
     }
   ];
 
@@ -106,7 +106,7 @@ const ClientDetailsPage = () => {
             <h2>Locations</h2>
             <button
               className="button"
-              onClick={() => navigate('/locations/add')}
+              onClick={() => navigate(`/locations/add?clientId=${id}`)}
             >
               Add Location
             </button>
@@ -122,7 +122,7 @@ const ClientDetailsPage = () => {
             <h2>Proposals</h2>
             <button
               className="button"
-              onClick={() => navigate(`/clients/${id}/proposals/create`)}
+              onClick={() => navigate(`/proposals/create?clientId=${id}`)}
             >
               Create Proposal
             </button>
