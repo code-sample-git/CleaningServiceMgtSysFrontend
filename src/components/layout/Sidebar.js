@@ -9,7 +9,7 @@ const Sidebar = () => {
     {
       label: 'Dashboard',
       path: '/home',
-      permission: 'canManageUsers'
+      permission: 'canViewDashboard'
     },
     {
       label: 'Staff',
@@ -45,6 +45,11 @@ const Sidebar = () => {
       label: 'Supplies',
       path: '/supply',
       permission: 'canManageInventory'
+    },
+    {
+      label: 'Service',
+      path: '/service',
+      permission: 'canRequestService'
     }
   ];
 

@@ -59,4 +59,8 @@ export const assignStaffToLocation = (staffId, locationId) =>
 export const getAssignedStaffForLocation = (locationId) =>
   api.get(`/locations/${locationId}/assigned-staff`);
 
+// New API call for client service requests
+export const getService = () => api.get('/service');
+export const createService = () => api.post('/service')
+
 export default api;

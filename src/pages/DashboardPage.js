@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService, inventoryService, supplyService, qaService, proposalService } from '../services/mockData';
+import { authService, inventoryService, supplyService, qaService, proposalService, serviceService } from '../services/mockData';
 import { Card } from '../components/common';
 import DashboardLayout from '../components/layout/DashboardLayout';
 

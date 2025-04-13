@@ -214,6 +214,15 @@ const mockProposals = [
   }
 ];
 
+const mockService = [
+  {
+    clientName: "John",
+    description: "Cleaning Service",
+    status: "Pending",
+    createdAt: "2024-04-13"
+  }
+];
+
 // Initialize localStorage with mock data
 const initializeMockData = () => {
   localStorage.setItem('users', JSON.stringify(mockUsers));
@@ -224,6 +233,7 @@ const initializeMockData = () => {
   localStorage.setItem('inventory', JSON.stringify(mockInventory));
   localStorage.setItem('supplies', JSON.stringify(mockSupplies));
   localStorage.setItem('proposals', JSON.stringify(mockProposals));
+  localStorage.setItem('service', JSON.stringify(mockService));
 };
 
 // Services
@@ -315,3 +325,4 @@ export const proposalService = {
     return null;
   }
 }; 
+export const serviceService = createService('service');

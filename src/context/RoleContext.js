@@ -12,7 +12,8 @@ const rolePermissions = {
     canCreateReports: true,
     canManageInventory: true,
     canApproveRequests: true,
-    canManageProposals: true
+    canManageProposals: true,
+    canViewDashboard: true
   },
   manager: {
     canManageUsers: false,
@@ -22,7 +23,8 @@ const rolePermissions = {
     canCreateReports: true,
     canManageInventory: true,
     canApproveRequests: true,
-    canManageProposals: true
+    canManageProposals: true,
+    canViewDashboard: true
   },
   staff: {
     canManageUsers: false,
@@ -35,7 +37,8 @@ const rolePermissions = {
     canManageProposals: false,
     canClockInOut: true,
     canRequestSupplies: true,
-    canViewAssignedTasks: true
+    canViewAssignedTasks: true,
+    canViewDashboard: true
   },
   client: {
     canManageUsers: false,
@@ -47,7 +50,8 @@ const rolePermissions = {
     canApproveRequests: false,
     canManageProposals: false,
     canViewLocations: true,
-    canRequestService: true
+    canRequestService: true,
+    canViewDashboard: true
   }
 };
 
