@@ -12,7 +12,8 @@ const DashboardPage = () => {
     staff: { total: 0, active: 0 },
     clients: { total: 0 },
     qaReports: { total: 0, avgRating: 0 },
-    proposals: { total: 0, pending: 0 }
+    proposals: { total: 0, pending: 0 },
+    service: { total: 0, pending: 0 }
   });
 
   useEffect(() => {
@@ -43,6 +44,10 @@ const DashboardPage = () => {
     const proposals = proposalService.getAll();
     const pendingProposals = proposals.filter(proposal => proposal.status === 'pending');
 
+    //
+    const services = serviceService.getAll();;
+    const pendingServices = services.filter(req => req.status === 'pending');
+
     setStats({
       inventory: {
         total: inventory.length,
@@ -66,6 +71,10 @@ const DashboardPage = () => {
       proposals: {
         total: proposals.length,
         pending: pendingProposals.length
+      },
+      service: {
+        total: services.length,
+        pending: pendingServices.length
       }
     });
   };
@@ -118,7 +127,16 @@ const DashboardPage = () => {
         { title: 'Pending Approval', value: stats.proposals.pending }
       ],
       action: { label: 'View Proposals', onClick: () => navigate('/proposals') }
+    },
+    {
+      title: 'Service Requests',
+      cards: [
+        { title: 'Total Requests', value: stats.service.total },
+        { title: 'Pending Requests', value: stats.service.pending }
+      ],
+      action: { label: 'View Requests', onClick: () => navigate('/service') }
     }
+    
   ];
 
   return (

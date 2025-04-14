@@ -40,6 +40,8 @@ export const AuthProvider = ({ children }) => {
       const profileRes = await getProfile();
       setUser(profileRes.data);
 
+      localStorage.setItem('userRole', data.user.role);
+
       return { success: true };
     } catch (err) {
       return { success: false, error: err.response?.data?.message || "Login failed" };

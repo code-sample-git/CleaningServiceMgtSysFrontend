@@ -47,6 +47,8 @@ import CreateProposalPage from "./pages/clients/CreateProposalPage";
 // Client Service Request
 import ServicePage from "./pages/service/ServicePage";
 import AddServicePage from "./pages/service/AddServicePage";
+import ServiceDetailsPage from "./pages/service/ServiceDetailsPage";
+import EditServicePage from "./pages/service/EditServicePage";
 
 // Manager Dashboard Page 
 import ManagerDashboardPage from "./pages/Manager/ManagerDashboardPage"; 
@@ -92,7 +94,9 @@ const AppRoutes = () => {
 
       <Route path="/service" element={<ProtectedRoute><ServicePage /></ProtectedRoute>} />
       <Route path="/service/add" element={<ProtectedRoute><AddServicePage /></ProtectedRoute>} />
-
+      <Route path="/service/:id" element={<ProtectedRoute><ServiceDetailsPage /></ProtectedRoute>} />
+      <Route path="/service/:id/edit" element={<ProtectedRoute><EditServicePage /></ProtectedRoute>} />
+      
       {/* Manager Dashboard (Protected Route) */}
       <Route
         path="/manager-dashboard"

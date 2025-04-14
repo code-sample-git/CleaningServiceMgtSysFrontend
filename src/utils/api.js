@@ -60,7 +60,10 @@ export const getAssignedStaffForLocation = (locationId) =>
   api.get(`/locations/${locationId}/assigned-staff`);
 
 // New API call for client service requests
+export const createService = (data) => api.post('/service', data);
 export const getService = () => api.get('/service');
-export const createService = (data) => api.post('/service', data)
+export const getServiceById = (id) => api.get(`/service/${id}`);
+export const updateService = (id, data) => api.put(`/service/${id}`, data);
+export const deleteService = (id) => api.delete(`/service/${id}`);
 
 export default api;
