@@ -3,6 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { authService, locationService, proposalService } from '../../services/mockData';
 import { Table, Loading } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import {
+  getClientById,
+  getLocationsByClientId,
+  getProposalsByClient
+} from '../../utils/api';
 
 const ClientDetailsPage = () => {
   const { id } = useParams();
@@ -16,22 +21,25 @@ const ClientDetailsPage = () => {
     loadClientDetails();
   }, [id]);
 
-  const loadClientDetails = () => {
-    const users = authService.getAll();
-    const clientUser = users.find(user => user.id === Number(id));
-    
-    if (!clientUser || clientUser.role !== 'client') {
+  const loadClientDetails = async () => {
+    try {
+      const { data: clientUser } = await getClientById(id);
+      if (!clientUser || clientUser.role !== 'client') {
+        navigate('/clients');
+        return;
+      }
+  
+      const { data: clientLocations } = await getLocationsByClientId(id);
+      const { data: clientProposals } = await getProposalsByClient(id);
+  
+      setClient(clientUser);
+      setLocations(clientLocations);
+      setProposals(clientProposals);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
       navigate('/clients');
-      return;
     }
-
-    const clientLocations = locationService.getByClient(Number(id));
-    const clientProposals = proposalService.getByClient(Number(id));
-
-    setClient(clientUser);
-    setLocations(clientLocations);
-    setProposals(clientProposals);
-    setLoading(false);
   };
 
   const locationColumns = [

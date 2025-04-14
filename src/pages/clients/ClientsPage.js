@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService, locationService } from '../../services/mockData';
+//import { authService, locationService } from '../../services/mockData';
 import { Table, Card } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { getAllUsers, getLocationsByClientId } from '../../utils/api';
 
 const ClientsPage = () => {
   const [clients, setClients] = useState([]);
@@ -13,17 +14,38 @@ const ClientsPage = () => {
     loadClients();
   }, []);
 
-  const loadClients = () => {
-    const users = authService.getAll();
-    const clientUsers = users.filter(user => user.role === 'client');
-    setClients(clientUsers);
-    setLoading(false);
+  const loadClients = async () => {
+    try {
+      const { data: users } = await getAllUsers();
+      const clientUsers = users.filter(user => user.role === 'client');
+      setClients(clientUsers);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const getClientLocations = (clientId) => {
-    const locations = locationService.getByClient(clientId);
-    return locations.length;
+  const [locationCounts, setLocationCounts] = useState({});
+
+  const loadLocationCounts = async (clientList) => {
+    const counts = {};
+    for (const client of clientList) {
+      const { data } = await getLocationsByClientId(client.id);
+      counts[client.id] = data.length;
+    }
+    setLocationCounts(counts);
   };
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      const { data: users } = await getAllUsers();
+      const clientUsers = users.filter(u => u.role === 'client');
+      setClients(clientUsers);
+      await loadLocationCounts(clientUsers);
+      setLoading(false);
+    };
+    fetchAll();
+  }, []);
 
   const columns = [
     {
@@ -36,7 +58,7 @@ const ClientsPage = () => {
     {
       key: 'locations',
       label: 'Locations',
-      render: (row) => getClientLocations(row.id)
+      render: (row) => locationCounts[row.id || row._id] || 0
     }
   ];
 
@@ -60,7 +82,7 @@ const ClientsPage = () => {
     },
     {
       title: 'Total Locations',
-      value: clients.reduce((sum, client) => sum + getClientLocations(client.id), 0)
+      value: clients.reduce((sum, client) => sum + locationCounts.length, 0)
     }
   ];
 

@@ -50,6 +50,9 @@ import AddServicePage from "./pages/service/AddServicePage";
 import ServiceDetailsPage from "./pages/service/ServiceDetailsPage";
 import EditServicePage from "./pages/service/EditServicePage";
 
+// Feedback
+import FeedbackPage from "./pages/feedback/FeedbackPage";
+
 // Manager Dashboard Page 
 import ManagerDashboardPage from "./pages/Manager/ManagerDashboardPage"; 
 
@@ -96,6 +99,8 @@ const AppRoutes = () => {
       <Route path="/service/add" element={<ProtectedRoute><AddServicePage /></ProtectedRoute>} />
       <Route path="/service/:id" element={<ProtectedRoute><ServiceDetailsPage /></ProtectedRoute>} />
       <Route path="/service/:id/edit" element={<ProtectedRoute><EditServicePage /></ProtectedRoute>} />
+
+      <Route path="/feedback" element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>} />
       
       {/* Manager Dashboard (Protected Route) */}
       <Route

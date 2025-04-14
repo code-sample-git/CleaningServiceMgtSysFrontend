@@ -86,5 +86,8 @@ export const getLocationById = (id) => api.get(`/locations/${id}`);
 export const getAllTasks = () => api.get('/tasks');
 export const getTaskById = (id) => api.get(`/tasks/${id}`);
 
+// Client feedback
+export const submitFeedback = (data) => api.post('/feedback', data);
+export const getFeedbackByProposalId = (proposalId) => api.get(`/feedback/proposal/${proposalId}`);
 
 export default api;

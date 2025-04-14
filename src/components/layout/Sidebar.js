@@ -50,6 +50,11 @@ const Sidebar = () => {
       label: 'Service',
       path: '/service',
       permission: 'canRequestService'
+    },
+    {
+      label: 'Feedback',
+      path: '/feedback',
+      permission: 'canRequestService'
     }
   ];
 
