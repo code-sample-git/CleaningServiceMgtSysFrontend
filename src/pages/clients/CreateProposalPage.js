@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { proposalService, locationService, taskService, authService } from '../../services/mockData';
 import { Table, Card } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { createProposal, getClientById, getLocationsByClientId, getAllTasks, getTaskById } from '../../utils/api';
 
 const CreateProposalPage = () => {
   const { id } = useParams();
@@ -17,18 +18,28 @@ const CreateProposalPage = () => {
   useEffect(() => {
     loadClientDetails();
   }, [id]);
+  const [allTasks, setAllTasks] = useState([]);
+  const [locations, setLocations] = useState([]);
 
-  const loadClientDetails = () => {
-    const users = authService.getAll();
-    const clientUser = users.find(user => user.id === Number(id));
-    
-    if (!clientUser || clientUser.role !== 'client') {
+  const loadClientDetails = async () => {
+    try {
+      const { data: clientData } = await getClientById(id);
+      if (clientData.role !== 'client') {
+        navigate('/clients');
+        return;
+      }
+      setClient(clientData);
+  
+      const { data: locs } = await getLocationsByClientId(id);
+      setLocations(locs);
+  
+      const { data: tasks } = await getAllTasks();
+      setAllTasks(tasks);
+  
+      setLoading(false);
+    } catch {
       navigate('/clients');
-      return;
     }
-
-    setClient(clientUser);
-    setLoading(false);
   };
 
   const handleLocationSelect = (locationId) => {
@@ -62,30 +73,33 @@ const CreateProposalPage = () => {
   const calculateTotal = () => {
     return Object.entries(locationTasks).reduce((total, [locationId, tasks]) => {
       return total + tasks.reduce((sum, taskId) => {
-        const task = taskService.getById(taskId);
+        const task = allTasks.find(t => t._id === taskId);
         return sum + (task?.price || 0);
       }, 0);
     }, 0);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
     const proposal = {
-      clientId: Number(id),
+      clientId: id,
       locations: selectedLocations.map(locId => ({
-        id: locId,
+        locationId: locId,
         tasks: locationTasks[locId]
       })),
       frequency,
       notes,
       totalAmount: calculateTotal(),
-      status: 'pending',
-      createdDate: new Date().toISOString()
+      status: 'pending'
     };
-
-    proposalService.create(proposal);
-    navigate(`/clients/${id}/proposals`);
+  
+    try {
+      await createProposal(proposal);
+      navigate(`/clients/${id}/proposals`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to create proposal.');
+    }
   };
 
   const locationColumns = [
@@ -105,17 +119,16 @@ const CreateProposalPage = () => {
   ];
 
   const renderLocationTasks = (locationId) => {
-    const tasks = taskService.getAll();
     const selectedTasks = locationTasks[locationId] || [];
-
+  
     return (
       <div className="task-list">
-        {tasks.map(task => (
-          <div key={task.id} className="task-item">
+        {allTasks.map(task => (
+          <div key={task._id} className="task-item">
             <input
               type="checkbox"
-              checked={selectedTasks.includes(task.id)}
-              onChange={() => handleTaskSelect(locationId, task.id)}
+              checked={selectedTasks.includes(task._id)}
+              onChange={() => handleTaskSelect(locationId, task._id)}
             />
             <span>{task.name}</span>
             <span className="task-price">${task.price}</span>
@@ -141,7 +154,7 @@ const CreateProposalPage = () => {
             <h2>Select Locations</h2>
             <Table
               columns={locationColumns}
-              data={locationService.getByClient(Number(id))}
+              data={locations}
             />
           </div>
 

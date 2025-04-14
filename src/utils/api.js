@@ -66,4 +66,25 @@ export const getServiceById = (id) => api.get(`/service/${id}`);
 export const updateService = (id, data) => api.put(`/service/${id}`, data);
 export const deleteService = (id) => api.delete(`/service/${id}`);
 
+// New API call for proposal generator
+export const createProposal = (data) => api.post('/proposals', data);
+export const getProposalsByClient = (clientId) => api.get(`/proposals/client/${clientId}`);
+export const getProposalById = (id) => api.get(`/proposals/${id}`);
+export const updateProposal = (id, data) => api.put(`/proposals/${id}`, data);
+export const deleteProposal = (id) => api.delete(`/proposals/${id}`);
+export const updateProposalStatus = (id, status) => api.patch(`/proposals/${id}/status`, { status });
+
+// Clients
+export const getAllUsers = () => api.get('/auth');
+export const getClientById = (id) => api.get(`/auth/${id}`);
+
+// Locations
+export const getLocationsByClientId = (clientId) => api.get(`/locations/client/${clientId}`);
+export const getLocationById = (id) => api.get(`/locations/${id}`);
+
+// Tasks
+export const getAllTasks = () => api.get('/tasks');
+export const getTaskById = (id) => api.get(`/tasks/${id}`);
+
+
 export default api;

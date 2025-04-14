@@ -3,25 +3,42 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { proposalService, locationService, taskService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { getProposalById, updateProposalStatus, getLocationById, getTaskById } from '../../utils/api';
 
 const ProposalDetailsPage = () => {
   const { id, proposalId } = useParams();
   const navigate = useNavigate();
   const [proposal, setProposal] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [locationDetails, setLocationDetails] = useState([]);
+  const [taskList, setTaskList] = useState([]);
 
   useEffect(() => {
     loadProposalDetails();
   }, [id, proposalId]);
 
-  const loadProposalDetails = () => {
-    const proposalData = proposalService.getById(Number(proposalId));
-    if (!proposalData) {
+  const loadProposalDetails = async () => {
+    try {
+      const { data: prop } = await getProposalById(proposalId);
+      setProposal(prop);
+  
+      const locationsFetched = await Promise.all(
+        prop.locations.map(async (entry) => {
+          const { data: locationData } = await getLocationById(entry.locationId);
+          return {
+            ...locationData,
+            tasks: entry.tasks
+          };
+        })
+      );
+  
+      const { data: allTasks } = await getAllTasks();
+      setLocationDetails(locationsFetched);
+      setTaskList(allTasks);
+      setLoading(false);
+    } catch (err) {
       navigate(`/clients/${id}/proposals`);
-      return;
     }
-    setProposal(proposalData);
-    setLoading(false);
   };
 
   const locationColumns = [
@@ -41,7 +58,7 @@ const ProposalDetailsPage = () => {
 
   const calculateLocationSubtotal = (location) => {
     return location.tasks.reduce((sum, taskId) => {
-      const task = taskService.getById(taskId);
+      const task = taskList.find(t => t._id === taskId);
       return sum + (task?.price || 0);
     }, 0);
   };
@@ -65,13 +82,13 @@ const ProposalDetailsPage = () => {
     }
   ];
 
-  const handleApprove = () => {
-    proposalService.updateStatus(Number(proposalId), 'approved');
+  const handleApprove = async () => {
+    await updateProposalStatus(proposalId, 'approved');
     loadProposalDetails();
   };
-
-  const handleReject = () => {
-    proposalService.updateStatus(Number(proposalId), 'rejected');
+  
+  const handleReject = async () => {
+    await updateProposalStatus(proposalId, 'rejected');
     loadProposalDetails();
   };
 
@@ -114,10 +131,7 @@ const ProposalDetailsPage = () => {
 
         <div className="section">
           <h2>Locations and Services</h2>
-          <Table
-            columns={locationColumns}
-            data={proposal.locations.map(locId => locationService.getById(locId))}
-          />
+          <Table columns={locationColumns} data={locationDetails} />
         </div>
 
         <div className="section">

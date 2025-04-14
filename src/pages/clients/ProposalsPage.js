@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { proposalService, authService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { getProposalsByClient, getClientById  } from '../../utils/api';
 
 const ProposalsPage = () => {
   const { id } = useParams();
@@ -15,19 +16,21 @@ const ProposalsPage = () => {
     loadProposals();
   }, [id]);
 
-  const loadProposals = () => {
-    const users = authService.getAll();
-    const clientUser = users.find(user => user.id === Number(id));
-    
-    if (!clientUser || clientUser.role !== 'client') {
+  const loadProposals = async () => {
+    try {
+      const { data: user } = await getClientById(id);
+      if (user.role !== 'client') {
+        navigate('/clients');
+        return;
+      }
+      setClient(user);
+  
+      const { data: proposals } = await getProposalsByClient(id);
+      setProposals(proposals);
+      setLoading(false);
+    } catch {
       navigate('/clients');
-      return;
     }
-
-    const clientProposals = proposalService.getByClient(Number(id));
-    setClient(clientUser);
-    setProposals(clientProposals);
-    setLoading(false);
   };
 
   const columns = [
