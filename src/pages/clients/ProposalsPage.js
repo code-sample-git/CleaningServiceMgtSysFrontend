@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { proposalService, authService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { getProposalsByClient, getClientById  } from '../../utils/api';
+import { getProposalsByClient, getClientById, sendProposalEmail } from '../../utils/api';
 
 const ProposalsPage = () => {
   const { id } = useParams();
@@ -55,7 +55,20 @@ const ProposalsPage = () => {
     {
       label: 'View',
       className: 'edit',
-      onClick: (row) => navigate(`/clients/${id}/proposals/${row.id}`)
+      onClick: (row) => navigate(`/clients/${id}/proposals/${row.id || row._id}`)
+    },
+    {
+      label: 'Send Email',
+      className: 'primary',
+      onClick: async (row) => {
+        try {
+          await sendProposalEmail(row.id || row._id);
+          alert('Proposal email sent successfully!');
+        } catch (err) {
+          console.error(err);
+          alert('Failed to send email.');
+        }
+      }
     }
   ];
 

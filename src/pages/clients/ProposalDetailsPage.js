@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { proposalService, locationService, taskService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { getProposalById, updateProposalStatus, getLocationById, getTaskById } from '../../utils/api';
+import { getProposalById, updateProposalStatus, getLocationById, getAllTasks } from '../../utils/api';
 
 const ProposalDetailsPage = () => {
   const { id, proposalId } = useParams();

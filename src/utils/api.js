@@ -73,6 +73,7 @@ export const getProposalById = (id) => api.get(`/proposals/${id}`);
 export const updateProposal = (id, data) => api.put(`/proposals/${id}`, data);
 export const deleteProposal = (id) => api.delete(`/proposals/${id}`);
 export const updateProposalStatus = (id, status) => api.patch(`/proposals/${id}/status`, { status });
+export const sendProposalEmail = (id) => api.post(`/proposals/${id}/email`);
 
 // Clients
 export const getAllUsers = () => api.get('/auth');

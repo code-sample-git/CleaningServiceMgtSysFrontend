@@ -43,6 +43,7 @@ import ClientsPage from "./pages/clients/ClientsPage";
 import ClientDetailsPage from "./pages/clients/ClientDetailsPage";
 import ProposalsPage from "./pages/clients/ProposalsPage";
 import CreateProposalPage from "./pages/clients/CreateProposalPage";
+import ProposalDetailsPage from "./pages/clients/ProposalDetailsPage";
 
 // Client Service Request
 import ServicePage from "./pages/service/ServicePage";
@@ -94,6 +95,7 @@ const AppRoutes = () => {
       <Route path="/clients/:id" element={<ProtectedRoute><ClientDetailsPage /></ProtectedRoute>} />
       <Route path="/clients/:id/proposals" element={<ProtectedRoute><ProposalsPage /></ProtectedRoute>} />
       <Route path="/clients/:id/proposals/create" element={<ProtectedRoute><CreateProposalPage /></ProtectedRoute>} />
+      <Route path="/clients/:id/proposals/:id" element={<ProtectedRoute><ProposalDetailsPage /></ProtectedRoute>} />
 
       <Route path="/service" element={<ProtectedRoute><ServicePage /></ProtectedRoute>} />
       <Route path="/service/add" element={<ProtectedRoute><AddServicePage /></ProtectedRoute>} />

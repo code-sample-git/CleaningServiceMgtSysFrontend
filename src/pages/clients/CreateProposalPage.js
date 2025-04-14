@@ -30,12 +30,11 @@ const CreateProposalPage = () => {
       }
       setClient(clientData);
   
-      const { data: locs } = await getLocationsByClientId(id);
+      const locs = locationService.getAll();
+      const tasks = taskService.getAll();
+      
       setLocations(locs);
-  
-      const { data: tasks } = await getAllTasks();
       setAllTasks(tasks);
-  
       setLoading(false);
     } catch {
       navigate('/clients');
@@ -73,7 +72,7 @@ const CreateProposalPage = () => {
   const calculateTotal = () => {
     return Object.entries(locationTasks).reduce((total, [locationId, tasks]) => {
       return total + tasks.reduce((sum, taskId) => {
-        const task = allTasks.find(t => t._id === taskId);
+        const task = allTasks.find(t => t.id === taskId);
         return sum + (task?.price || 0);
       }, 0);
     }, 0);
@@ -84,8 +83,8 @@ const CreateProposalPage = () => {
     const proposal = {
       clientId: id,
       locations: selectedLocations.map(locId => ({
-        locationId: locId,
-        tasks: locationTasks[locId]
+        locationId: `00000000000000000000000${locId}`, // force ObjectId-like string
+        tasks: (locationTasks[locId] || []).map(taskId => `00000000000000000000000${taskId}`)
       })),
       frequency,
       notes,
@@ -124,11 +123,11 @@ const CreateProposalPage = () => {
     return (
       <div className="task-list">
         {allTasks.map(task => (
-          <div key={task._id} className="task-item">
+          <div key={task.id} className="task-item">
             <input
               type="checkbox"
-              checked={selectedTasks.includes(task._id)}
-              onChange={() => handleTaskSelect(locationId, task._id)}
+              checked={selectedTasks.includes(task.id)}
+              onChange={() => handleTaskSelect(locationId, task.id)}
             />
             <span>{task.name}</span>
             <span className="task-price">${task.price}</span>
