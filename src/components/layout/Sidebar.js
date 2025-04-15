@@ -19,12 +19,12 @@ const Sidebar = () => {
     {
       label: 'Clients',
       path: '/clients',
-      permission: 'canManageUsers'
+      permission: 'canRequestService'
     },
     {
       label: 'Locations',
       path: '/locations',
-      permission: 'canManageLocations'
+      permission: 'canRequestService'
     },
     {
       label: 'Tasks',
