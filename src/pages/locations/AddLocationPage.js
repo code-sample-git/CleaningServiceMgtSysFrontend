@@ -1,17 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { locationService } from '../../services/mockData';
 import { Form, FormInput, FormSelect } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { createLocation, getAllUsers } from '../../utils/api';
 
 const AddLocationPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    status: 'active'
+    status: 'active',
+    clientId: ''
   });
+  const [clients, setClients] = useState([]);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadClients = async () => {
+      try {
+        const { data: users } = await getAllUsers();
+        const clientUsers = users.filter(user => user.role === 'client');
+        setClients(clientUsers);
+      } catch (err) {
+        console.error('Failed to load clients:', err);
+      }
+    };
+    loadClients();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,18 +36,19 @@ const AddLocationPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.address) {
-      setError('Please fill in all required fields');
+
+    if (!formData.name || !formData.address || !formData.clientId) {
+      setError('Please fill in all required fields.');
       return;
     }
 
     try {
-      locationService.add(formData);
+      await createLocation(formData);
       navigate('/locations');
     } catch (err) {
+      console.error(err);
       setError('Failed to add location. Please try again.');
     }
   };
@@ -41,6 +57,11 @@ const AddLocationPage = () => {
     { value: 'active', label: 'Active' },
     { value: 'inactive', label: 'Inactive' }
   ];
+
+  const clientOptions = clients.map(client => ({
+    value: client._id,
+    label: `${client.firstName} ${client.lastName}`
+  }));
 
   return (
     <DashboardLayout>
@@ -52,7 +73,7 @@ const AddLocationPage = () => {
         <div className="card">
           <Form onSubmit={handleSubmit}>
             {error && <div className="error">{error}</div>}
-            
+
             <FormInput
               label="Location Name"
               name="name"
@@ -77,6 +98,15 @@ const AddLocationPage = () => {
               options={statusOptions}
             />
 
+            <FormSelect
+              label="Client"
+              name="clientId"
+              value={formData.clientId}
+              onChange={handleChange}
+              options={clientOptions}
+              required
+            />
+
             <div className="form-actions">
               <button
                 type="button"
@@ -99,4 +129,4 @@ const AddLocationPage = () => {
   );
 };
 
-export default AddLocationPage; 
+export default AddLocationPage;

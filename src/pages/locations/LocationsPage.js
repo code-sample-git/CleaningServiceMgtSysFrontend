@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { locationService } from '../../services/mockData';
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { getLocations } from '../../utils/api';
 
 const LocationsPage = () => {
   const [locations, setLocations] = useState([]);
@@ -13,11 +14,17 @@ const LocationsPage = () => {
     loadLocations();
   }, []);
 
-  const loadLocations = () => {
-    const data = locationService.getAll();
-    setLocations(data);
-    setLoading(false);
+  const loadLocations = async () => {
+    try {
+      const response = await getLocations();
+      setLocations(response.data || []);
+    } catch (error) {
+      console.error('Failed to load locations:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+  
 
   const columns = [
     { key: 'name', label: 'Location Name' },
@@ -33,7 +40,7 @@ const LocationsPage = () => {
     {
       label: 'View',
       className: 'edit',
-      onClick: (row) => navigate(`/locations/${row.id}`)
+      onClick: (row) => navigate(`/locations/${row._id}`)
     }
   ];
 

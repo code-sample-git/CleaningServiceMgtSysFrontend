@@ -4,18 +4,24 @@ import { proposalService, locationService, taskService } from '../../services/mo
 import { Table, Card, StatusTag } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { getProposalById, updateProposalStatus, getLocationById, getAllTasks } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 
 const ProposalDetailsPage = () => {
+  const { loading: authLoading } = useAuth();
+  
   const { id, proposalId } = useParams();
   const navigate = useNavigate();
   const [proposal, setProposal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [locationDetails, setLocationDetails] = useState([]);
   const [taskList, setTaskList] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadProposalDetails();
-  }, [id, proposalId]);
+    if (!authLoading) {
+      loadProposalDetails();
+    }
+  }, [id, proposalId, authLoading]);
 
   const loadProposalDetails = async () => {
     try {
@@ -37,7 +43,9 @@ const ProposalDetailsPage = () => {
       setTaskList(allTasks);
       setLoading(false);
     } catch (err) {
-      navigate(`/clients/${id}/proposals`);
+      console.log("Proposal ID:", proposalId);
+      console.error('Failed to load proposal:', err);
+      setError('Unable to load proposal. Please try again.');
     }
   };
 
@@ -99,6 +107,8 @@ const ProposalDetailsPage = () => {
   return (
     <DashboardLayout>
       <div className="container">
+        {error && <div className="error">{error}</div>}
+
         <div className="page-header">
           <h1>Proposal Details</h1>
           {proposal.status === 'pending' && (

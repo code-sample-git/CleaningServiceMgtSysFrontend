@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { proposalService, locationService, taskService, authService } from '../../services/mockData';
 import { Table, Card } from '../../components/common';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { createProposal, getClientById, getLocationsByClientId, getAllTasks, getTaskById } from '../../utils/api';
+import { createProposal, getClientById, getLocations, getAllTasks } from '../../utils/api';
 
 const CreateProposalPage = () => {
   const { id } = useParams();
@@ -29,10 +29,11 @@ const CreateProposalPage = () => {
         return;
       }
       setClient(clientData);
-  
-      const locs = locationService.getAll();
-      const tasks = taskService.getAll();
-      
+
+      const { data: locs } = await getLocations();
+      const { data: tasks } = await getAllTasks();
+
+
       setLocations(locs);
       setAllTasks(tasks);
       setLoading(false);
@@ -60,7 +61,7 @@ const CreateProposalPage = () => {
   const handleTaskSelect = (locationId, taskId) => {
     const tasks = locationTasks[locationId] || [];
     const isSelected = tasks.includes(taskId);
-    
+
     setLocationTasks({
       ...locationTasks,
       [locationId]: isSelected
@@ -72,7 +73,7 @@ const CreateProposalPage = () => {
   const calculateTotal = () => {
     return Object.entries(locationTasks).reduce((total, [locationId, tasks]) => {
       return total + tasks.reduce((sum, taskId) => {
-        const task = allTasks.find(t => t.id === taskId);
+        const task = allTasks.find(t => t._id === taskId);
         return sum + (task?.price || 0);
       }, 0);
     }, 0);
@@ -83,15 +84,15 @@ const CreateProposalPage = () => {
     const proposal = {
       clientId: id,
       locations: selectedLocations.map(locId => ({
-        locationId: `00000000000000000000000${locId}`, // force ObjectId-like string
-        tasks: (locationTasks[locId] || []).map(taskId => `00000000000000000000000${taskId}`)
+        locationId: locId,
+        tasks: locationTasks[locId] || []
       })),
       frequency,
       notes,
       totalAmount: calculateTotal(),
       status: 'pending'
     };
-  
+
     try {
       await createProposal(proposal);
       navigate(`/clients/${id}/proposals`);
@@ -108,8 +109,8 @@ const CreateProposalPage = () => {
       render: (row) => (
         <input
           type="checkbox"
-          checked={selectedLocations.includes(row.id)}
-          onChange={() => handleLocationSelect(row.id)}
+          checked={selectedLocations.includes(row._id)}
+          onChange={() => handleLocationSelect(row._id)}
         />
       )
     },
@@ -119,15 +120,15 @@ const CreateProposalPage = () => {
 
   const renderLocationTasks = (locationId) => {
     const selectedTasks = locationTasks[locationId] || [];
-  
+
     return (
       <div className="task-list">
         {allTasks.map(task => (
-          <div key={task.id} className="task-item">
+          <div key={task._id} className="task-item">
             <input
               type="checkbox"
-              checked={selectedTasks.includes(task.id)}
-              onChange={() => handleTaskSelect(locationId, task.id)}
+              checked={selectedTasks.includes(task._id)}
+              onChange={() => handleTaskSelect(locationId, task._id)}
             />
             <span>{task.name}</span>
             <span className="task-price">${task.price}</span>
@@ -161,7 +162,7 @@ const CreateProposalPage = () => {
             <div className="section">
               <h2>Select Tasks for Each Location</h2>
               {selectedLocations.map(locationId => {
-                const location = locationService.getById(locationId);
+                const location = locations.find(l => l._id === locationId);
                 return (
                   <div key={locationId} className="location-tasks card">
                     <h3>{location.name}</h3>

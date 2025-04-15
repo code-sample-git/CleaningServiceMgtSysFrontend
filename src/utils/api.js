@@ -52,7 +52,7 @@ export const resetPassword = (token, newPassword) => api.post(`/auth/reset-passw
 export const getProfile = () => api.get('/auth/profile');
 
 // New API calls for locations and staff
-export const getLocations = () => api.get('/locations');
+
 export const getStaff = () => api.get('/staff');
 export const assignStaffToLocation = (staffId, locationId) =>
   api.post('/assign-staff', { staffId, locationId });
@@ -80,12 +80,15 @@ export const getAllUsers = () => api.get('/auth');
 export const getClientById = (id) => api.get(`/auth/${id}`);
 
 // Locations
+export const createLocation = (data) => api.post('/locations', data);
+export const getLocations = () => api.get('/locations');
 export const getLocationsByClientId = (clientId) => api.get(`/locations/client/${clientId}`);
 export const getLocationById = (id) => api.get(`/locations/${id}`);
 
 // Tasks
 export const getAllTasks = () => api.get('/tasks');
 export const getTaskById = (id) => api.get(`/tasks/${id}`);
+export const createTask = (data) => api.post('/tasks', data);
 
 // Client feedback
 export const submitFeedback = (data) => api.post('/feedback', data);

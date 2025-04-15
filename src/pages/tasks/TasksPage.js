@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { taskService } from '../../services/mockData';
+import { getAllTasks } from '../../utils/api';
 
 function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -15,9 +16,10 @@ function TasksPage() {
 
   const loadTasks = async () => {
     try {
-      const result = await taskService.getTasks();
-      setTasks(result.data || []);
+      const response = await getAllTasks();
+      setTasks(response.data || []);
     } catch (err) {
+      console.error(err);
       setError('Failed to load tasks');
     } finally {
       setIsLoading(false);
@@ -64,23 +66,14 @@ function TasksPage() {
         </div>
 
         {error && <div className="error-message">{error}</div>}
-
         <div className="stats-container">
           <div className="stat-card">
             <h3>Total Tasks</h3>
             <p>{tasks.length}</p>
           </div>
           <div className="stat-card">
-            <h3>Pending</h3>
-            <p>{tasks.filter(task => task.status.toLowerCase() === 'pending').length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>In Progress</h3>
-            <p>{tasks.filter(task => task.status.toLowerCase() === 'in progress').length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>Completed</h3>
-            <p>{tasks.filter(task => task.status.toLowerCase() === 'completed').length}</p>
+            <h3>Estimated Total Time</h3>
+            <p>{tasks.reduce((sum, t) => sum + (t.estimatedDuration || 0), 0)} min</p>
           </div>
         </div>
 
@@ -89,29 +82,25 @@ function TasksPage() {
             <thead>
               <tr>
                 <th>Task Name</th>
-                <th>Location</th>
-                <th>Assigned To</th>
-                <th>Due Date</th>
-                <th>Status</th>
+                <th>Description</th>
+                <th>Frequency</th>
+                <th>Duration</th>
+                <th>Price</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {tasks.map((task) => (
-                <tr key={task.id}>
+                <tr key={task._id}>
                   <td>{task.name}</td>
-                  <td>{task.location}</td>
-                  <td>{task.assignedTo}</td>
-                  <td>{new Date(task.dueDate).toLocaleDateString()}</td>
-                  <td>
-                    <span className={`status-tag ${getStatusClass(task.status)}`}>
-                      {task.status}
-                    </span>
-                  </td>
+                  <td>{task.description}</td>
+                  <td>{task.frequency}</td>
+                  <td>{task.estimatedDuration} min</td>
+                  <td>${task.price}</td>
                   <td>
                     <button
                       className="btn-secondary"
-                      onClick={() => handleViewTask(task.id)}
+                      onClick={() => handleViewTask(task._id)}
                     >
                       View Details
                     </button>
@@ -128,4 +117,3 @@ function TasksPage() {
 
 export default TasksPage;
 
- 

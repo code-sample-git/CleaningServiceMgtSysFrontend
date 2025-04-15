@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { taskService } from '../../services/mockData';
+import { createTask } from '../../utils/api';
 
 function AddTaskPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    location: '',
-    assignedTo: '',
-    dueDate: '',
-    notes: '',
+    frequency: 'daily',
+    estimatedDuration: '',
+    price: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,15 +30,11 @@ function AddTaskPage() {
     setIsLoading(true);
 
     try {
-      const result = await taskService.createTask({
-        ...formData,
-        status: 'Pending'
-      });
-
-      if (result.success) {
+      const response = await createTask(formData);
+      if (response.status === 201) {
         navigate('/tasks');
       } else {
-        setError(result.error || 'Failed to create task');
+        setError('Failed to create task');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -62,6 +58,7 @@ function AddTaskPage() {
 
         <div className="form-container">
           <form onSubmit={handleSubmit} className="form">
+
             <div className="form-group">
               <label htmlFor="name">Task Name *</label>
               <input
@@ -84,57 +81,48 @@ function AddTaskPage() {
                 onChange={handleChange}
                 required
                 placeholder="Enter task description"
-                rows={4}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="location">Location *</label>
-              <input
-                id="location"
-                name="location"
-                type="text"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                placeholder="Enter task location"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="assignedTo">Assigned To *</label>
-              <input
-                id="assignedTo"
-                name="assignedTo"
-                type="text"
-                value={formData.assignedTo}
-                onChange={handleChange}
-                required
-                placeholder="Enter assignee name"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="dueDate">Due Date *</label>
-              <input
-                id="dueDate"
-                name="dueDate"
-                type="date"
-                value={formData.dueDate}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="notes">Notes</label>
-              <textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Enter additional notes"
                 rows={3}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="frequency">Frequency *</label>
+              <select
+                id="frequency"
+                name="frequency"
+                value={formData.frequency}
+                onChange={handleChange}
+                required
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="estimatedDuration">Estimated Duration (minutes) *</label>
+              <input
+                id="estimatedDuration"
+                name="estimatedDuration"
+                type="number"
+                value={formData.estimatedDuration}
+                onChange={handleChange}
+                required
+                placeholder="Enter duration"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="price">Price ($) *</label>
+              <input
+                id="price"
+                name="price"
+                type="number"
+                value={formData.price}
+                onChange={handleChange}
+                required
+                placeholder="Enter price"
               />
             </div>
 
